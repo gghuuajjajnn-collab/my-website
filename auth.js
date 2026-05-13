@@ -57,9 +57,14 @@ function showAuthMessage(message) {
 function updateNavAuth() {
     const auth = getAuth();
     const logoutBtn = document.getElementById('logoutBtn');
+    const loginLink = document.getElementById('loginNav');
     const userName = document.getElementById('userNameDisplay');
+
     if (logoutBtn) {
         logoutBtn.style.display = auth ? 'inline-block' : 'none';
+    }
+    if (loginLink) {
+        loginLink.style.display = auth ? 'none' : 'inline-block';
     }
     if (userName) {
         userName.innerText = auth ? auth.name : 'زائر';
@@ -93,7 +98,7 @@ async function handleGoogleCredentialResponse(response) {
         provider: 'google'
     });
 
-    window.location.href = '/ai';
+    window.location.href = '/';
 }
 
 function initGoogleSignIn() {

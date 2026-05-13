@@ -5,17 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>من أنا | محمد فتحي</title>
     <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="common.js"></script>
 </head>
 <body>
 
-    <nav class="navbar">
-        <a href="/">الرئيسية</a>
-        <a href="/ai">الذكاء الاصطناعي</a>
-        <a href="/comments">تعليقاتكم</a>
-        <a href="/login" id="loginNav">تسجيل الدخول</a>
-        <a href="/about" class="active" >من أنا</a>
-        <button id="favoritesBtn" onclick="showFavorites()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 15px; padding: 5px 10px; transition: 0.3s;">⭐ المفضلات</button>
-    </nav>
+    <div id="navContainer"></div>
 
     <main class="fade-in" style="margin-top: 50px;">
         <div class="about-card">
