@@ -34,7 +34,7 @@ function isLoggedIn() {
 
 function requireAuth() {
     if (!isLoggedIn()) {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
         return null;
     }
     return getAuth();
@@ -42,7 +42,7 @@ function requireAuth() {
 
 function logout() {
     clearAuth();
-    window.location.href = 'login.html';
+    window.location.href = '/login';
 }
 
 function showAuthMessage(message) {
@@ -93,7 +93,7 @@ async function handleGoogleCredentialResponse(response) {
         provider: 'google'
     });
 
-    window.location.href = 'ai.html';
+    window.location.href = '/ai';
 }
 
 function initGoogleSignIn() {
@@ -128,9 +128,19 @@ function fetchWithAuth(url, options = {}) {
     return fetch(url, options);
 }
 
+function normalizePath(path) {
+    const cleaned = path.replace(/\/+$/, '');
+    return cleaned === '' ? '/' : cleaned;
+}
+
 function isLoginPage() {
-    const path = window.location.pathname.replace(/\/+$/, '');
-    return path === '/login' || path === '/login.html' || path === '/login/';
+    const path = normalizePath(window.location.pathname);
+    return path === '/login' || path === '/login.html';
+}
+
+function isHomePage() {
+    const path = normalizePath(window.location.pathname);
+    return path === '/' || path === '/index.html';
 }
 
 function initLoginPage() {
@@ -144,8 +154,7 @@ function initLoginPage() {
 
 window.addEventListener('DOMContentLoaded', () => {
     updateNavAuth();
-    const path = window.location.pathname.replace(/\/+$/, '');
-    if (isLoginPage() || path === '/' || path === '/index.html') {
+    if (isLoginPage() || isHomePage()) {
         initLoginPage();
     }
 });
