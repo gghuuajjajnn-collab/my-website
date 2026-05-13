@@ -10,11 +10,18 @@
 </head>
 <body>
 <script>
-    const auth = getAuth();
-    if (!auth || !auth.email) {
-        window.location.href = 'login.html';
+    function redirectToApp() {
+        const auth = getAuth ? getAuth() : null;
+        if (!auth || !auth.email) {
+            window.location.href = '/login';
+        } else {
+            window.location.href = '/ai';
+        }
+    }
+    if (typeof getAuth === 'function') {
+        redirectToApp();
     } else {
-        window.location.href = 'ai.html';
+        window.location.href = '/login';
     }
 </script>
     <nav class="navbar">

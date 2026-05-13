@@ -128,10 +128,15 @@ function fetchWithAuth(url, options = {}) {
     return fetch(url, options);
 }
 
+function isLoginPage() {
+    const path = window.location.pathname.replace(/\/+$/, '');
+    return path === '/login' || path === '/login.html' || path === '/login/';
+}
+
 function initLoginPage() {
     const auth = getAuth();
     if (auth && auth.email) {
-        window.location.href = 'ai.html';
+        window.location.href = '/ai';
         return;
     }
     initGoogleSignIn();
@@ -139,7 +144,8 @@ function initLoginPage() {
 
 window.addEventListener('DOMContentLoaded', () => {
     updateNavAuth();
-    if (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('/')) {
+    const path = window.location.pathname.replace(/\/+$/, '');
+    if (isLoginPage() || path === '/' || path === '/index.html') {
         initLoginPage();
     }
 });

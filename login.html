@@ -10,11 +10,11 @@
 </head>
 <body>
      <nav class="navbar">
-        <a href="index.html">الرئيسية</a>
-        <a href="ai.html">الذكاء الاصطناعي</a>
-        <a href="comments.html">تعليقاتكم</a>
-        <a href="login.html"class="active" id="loginNav">تسجيل الدخول</a>
-        <a href="about.html">من أنا</a>
+        <a href="/">الرئيسية</a>
+        <a href="/ai">الذكاء الاصطناعي</a>
+        <a href="/comments">تعليقاتكم</a>
+        <a href="/login" class="active" id="loginNav">تسجيل الدخول</a>
+        <a href="/about">من أنا</a>
         <button id="favoritesBtn" onclick="showFavorites()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 15px; padding: 5px 10px; transition: 0.3s;">⭐ المفضلات</button>
     </nav>
     <main class="slide-up" style="margin-top: 100px;">
@@ -58,7 +58,7 @@
                     role: data.role,
                     provider: 'local'
                 });
-                window.location.href = "ai.html";
+                window.location.href = "/ai";
             } else {
                 showAuthMessage(data.message || "خطأ في البيانات، حاول مجدداً.");
             }
