@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 # متغيرات المصادقة
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDIERB7bPel-OTMxQxSE8ELX9diJ4kD16c")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
-AUTH_SECRET = os.environ.get("AUTH_SECRET", "change_this_secret")
+AUTH_SECRET = os.environ.get("AUTH_SECRET")
+if not AUTH_SECRET:
+    raise ValueError("لا يمكن تشغيل السيرفر بدون AUTH_SECRET مضبوط في الإعدادات!")
 
 users = {
     "mohammad": "2026",
@@ -29,7 +31,7 @@ local_roles = {
 
 authorized_google_users = {
     # اضف هنا ايميلات المستخدمين المسموح لها وصلاحياتهم
-    # "user@example.com": "admin",
+     "gghuuajjajnn@gmail.com": "admin",
     # "student@example.com": "student"
 }
 
