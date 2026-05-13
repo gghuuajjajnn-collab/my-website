@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المساعد الذكي | محمد فتحي</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <style>
+        .chat-container { width: 90%; max-width: 700px; background: #1e1e1e; border-radius: 15px; padding: 20px; margin-top: 30px; display: flex; flex-direction: column; height: 500px; }
+        #chatBox { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding: 10px; }
+        .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.6; }
+        .user-msg { background: #007acc; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
+        .bot-msg { background: #2d2d2d; align-self: flex-start; color: #eee; border-bottom-left-radius: 2px; border-right: 4px solid #007acc; }
+        .input-area { display: flex; gap: 10px; padding-top: 20px; }
+        input#userQuery { flex-grow: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #252525; color: white; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html">الرئيسية</a>
+        <a href="ai.html"class="active">الذكاء الاصطناعي</a>
+        <a href="comments.html">تعليقاتكم</a>
+        <a href="login.html" id="loginNav">تسجيل الدخول</a>
+        <a href="about.html">من أنا</a>
+        <button id="favoritesBtn" onclick="showFavorites()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 15px; padding: 5px 10px; transition: 0.3s;">⭐ المفضلات</button>
+        <button id="logoutBtn" onclick="logout()" style="display:none; background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 15px; padding: 5px 10px; transition: 0.3s;">خروج</button>
+    </nav>
+    <main class="fade-in">
+        <div id="aiAssistant" style="position: fixed; bottom: 20px; left: 20px; display: flex; align-items: center; gap: 10px; z-index: 999;">
+            <img src="robot.png" style="width: 70px; height: 70px;">
+            <div style="background: #1e1e1e; padding: 10px 15px; border-radius: 10px; border: 1px solid #333; font-size: 14px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">مرحباً! أنا هنا لمساعدتك في البرمجة 🤖</div>
+        </div>
+        <div id="userInfo" style="color: #ccc; text-align: right; margin-bottom: 15px; font-size: 14px;"></div>
+        <div class="chat-container">
+            <div id="chatBox">
+                <div class="msg bot-msg">مرحباً بك يا زميلي.. أنا مساعدك الذكي المبرمج بالبايثون. اطلب مني أي كود وسأقوم بتوليده وشرحه لك.</div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="userQuery" placeholder="اكتب سؤالك البرمجي هنا...">
+                <button id="sendButton" onclick="askAI()">إرسال</button>
+            </div>
+        </div>
+    </main>
+
+    <script class="fade-In">
+        document.addEventListener('DOMContentLoaded', () => {
+            const auth = requireAuth();
+            if (auth) {
+                updateNavAuth();
+                const loginLink = document.getElementById('loginNav');
+                if (loginLink) loginLink.style.display = 'none';
+
+                const userInfo = document.getElementById('userInfo');
+                if (userInfo) {
+                    userInfo.innerText = `مرحباً ${auth.name} | الصلاحية: ${auth.role}`;
+                }
+            }
+        });
+
+        async function askAI() {
+            const queryInput = document.getElementById('userQuery');
+            const query = queryInput.value.trim();
+            const chatBox = document.getElementById('chatBox');
+            const sendButton = document.getElementById('sendButton');
+            if (!query) return;
+
+            const backendUrl = getBackendBaseUrl();
+            if (!backendUrl) {
+                showCustomAlert('الخادم غير محدد. لتشغيل الذكاء الاصطناعي على GitHub Pages، اضبط BACKEND_BASE_URL في config.js');
+                return;
+            }
+            chatBox.innerHTML += `<div class="msg user-msg">${escapeHtml(query)}</div>`;
+            queryInput.value = '';
+            sendButton.disabled = true;
+
+            const loading = document.createElement('div');
+            loading.className = 'msg bot-msg';
+            loading.innerText = 'جاري الاتصال بالذكاء الاصطناعي...';
+            chatBox.appendChild(loading);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetchWithAuth(`${backendUrl}/ask-ai`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await response.json();
+                const botMsg = document.createElement('div');
+                botMsg.className = 'msg bot-msg';
+                botMsg.innerText = data.response || 'عذراً، لم يصل رد من الخادم.';
+                chatBox.appendChild(botMsg);
+            } catch (error) {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'msg bot-msg';
+                botMsg.innerText = 'عذراً، تأكد من تشغيل خادم البايثون (app.py) أولاً.';
+                chatBox.appendChild(botMsg);
+                showCustomAlert(`حدث خطأ في الاتصال: ${error.message}`);
+            } finally {
+                loading.remove();
+                sendButton.disabled = false;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+
+        function showCustomAlert(message) {
+            const existingAlerts = document.querySelectorAll('.alert-custom');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-custom';
+            alertDiv.innerText = message;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+          function showFavorites() {
+            const favCodes = JSON.parse(localStorage.getItem('favorites')) || [];
+            if (favCodes.length === 0) {
+                showCustomAlert('لا توجد أكواد محفوظة في المفضلات');
+                return;
+            }
+            
+            let message = 'أكوادك المفضلة:\n\n';
+            favCodes.forEach((code, index) => {
+                message += `${index + 1}. ${code}\n`;
+            });
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-custom';
+            alertDiv.style.whiteSpace = 'pre-wrap';
+            alertDiv.innerText = message;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

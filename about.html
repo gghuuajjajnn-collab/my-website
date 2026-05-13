@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>من أنا | محمد فتحي</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html">الرئيسية</a>
+        <a href="ai.html">الذكاء الاصطناعي</a>
+        <a href="comments.html">تعليقاتكم</a>
+        <a href="login.html" id="loginNav">تسجيل الدخول</a>
+        <a href="about.html"class="active" >من أنا</a>
+        <button id="favoritesBtn" onclick="showFavorites()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 15px; padding: 5px 10px; transition: 0.3s;">⭐ المفضلات</button>
+    </nav>
+
+    <main class="fade-in" style="margin-top: 50px;">
+        <div class="about-card">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="robot.png" alt="صورة محمد فتحي" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #007acc; margin-bottom: 20px;">
+            </div>
+            <h2>محمد فتحي جعفر صالح</h2>
+            <h4 class="title-job">مصمم مواقع ومهندس جرافيك</h4>
+            <hr>
+            <ul class="info-list">
+                <li><strong>العمر:</strong> 22 سنة</li>
+                <li><strong>السكن:</strong> اليمن - لحج (صبر)</li>
+                <li><strong>التخصص:</strong> علوم حاسوب / موشن جرافيك</li>
+                <li><strong>المهارات:</strong> HTML, CSS, JavaScript, Python, Flask, Firebase</li>
+                <li><strong>الهوايات:</strong> البرمجة، التصميم، الذكاء الاصطناعي</li>
+            </ul>
+            <p class="bio">
+                أدمج بين المنطق البرمجي والإبداع البصري لبناء واجهات مستخدم تفاعلية وذكية. هذا الموقع هو أحد مشاريعي لتسهيل الوصول للأكواد الجامعية والمساعدة في التعلم.
+            </p>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="showContact()" style="background: #007acc; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px;">تواصل معي</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showContact() {
+            const contactInfo = `
+                📧 البريد الإلكتروني: gghuuajjajnn@gmail.com\n
+                📱 الهاتف: +967-771-875-616-\n
+                💼 LinkedIn: linkedin.com/in/mohammad-fathi\n
+                🐙 GitHub: github.com/mohammad-fathi
+            `;
+            showCustomAlert(contactInfo.replace(/\n/g, '<br>'));
+        }
+
+        function showCustomAlert(message) {
+            const existingAlerts = document.querySelectorAll('.alert-custom');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-custom';
+            alertDiv.innerHTML = message;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function showFavorites() {
+            const favCodes = JSON.parse(localStorage.getItem('favorites')) || [];
+            if (favCodes.length === 0) {
+                showCustomAlert('لا توجد أكواد محفوظة في المفضلات');
+                return;
+            }
+            
+            let message = 'أكوادك المفضلة:\n\n';
+            favCodes.forEach((code, index) => {
+                message += `${index + 1}. ${code}\n`;
+            });
+            showCustomAlert(message.replace(/\n/g, '<br>'));
+        }
+    </script>
+
+    <footer>
+        <p>&copy; 2026 جميع الحقوق محفوظة | تصميم وبرمجة: محمد فتحي جعفر</p>
+    </footer>
+
+</body>
+</html>

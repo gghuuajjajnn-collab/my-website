@@ -1,0 +1,58 @@
+<div id="assistant">
+    <img src="robot.png" id="assistantImg">
+    <div id="assistantMessage">مرحبا 👋 اكتب اسم الكود</div>
+</div>
+
+/* شخصية الموقع */
+#assistant {
+ position: fixed;
+ bottom: 20px;
+ left: 20px;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ z-index: 999;
+ animation: float 3s ease-in-out infinite;
+}
+
+#assistantImg {
+ width: 70px;
+ height: 70px;
+}
+
+#assistantMessage {
+ background: #1e1e1e;
+ padding: 10px 15px;
+ border-radius: 10px;
+ border: 1px solid #333;
+ font-size: 14px;
+ color: white;
+ box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+/* حركة طفو */
+@keyframes float {
+ 0% { transform: translateY(0px); }
+ 50% { transform: translateY(-8px); }
+ 100% { transform: translateY(0px); }
+}
+
+/* حركة عند المرور */
+.code-card:hover {
+ transform: translateY(-5px);
+ transition: 0.3s;
+}
+
+button:hover {
+ transform: scale(1.05);
+}
+
+const assistantMessage = document.getElementById("assistantMessage");
+
+assistantMessage.innerText = "جاري البحث 🔍";
+
+assistantMessage.innerText = "وجدت الكود 😎";
+
+assistantMessage.innerText = "حاول كلمة أخرى 🤔";
+
+assistantMessage.innerText = "تم النسخ بنجاح 🚀";

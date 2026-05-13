@@ -1,0 +1,345 @@
+/* الإعدادات العامة والألوان */
+:root {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --input-bg: #2d2d2d;
+    --border-color: #444;
+    --accent-color: #007acc;
+    --hover-bg: #333;
+    --success-color: #4CAF50;
+    --error-color: #f44336;
+}
+
+body {
+   background-color: var(--bg-color);
+   color: var(--text-color);
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   margin: 0;
+   padding: 0;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   min-height: 100vh;
+   transition: background-color 0.3s, color 0.3s;
+}
+
+/* شريط التصفح العلوي */
+.navbar {
+   width: 100%;
+   background-color: var(--card-bg);
+   padding: 15px 0;
+   text-align: center;
+   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.navbar a {
+   color: white;
+   text-decoration: none;
+   margin: 0 15px;
+   font-size: 18px;
+   padding: 5px 10px;
+   transition: 0.3s;
+}
+.navbar a:hover, .navbar a.active {
+   color: var(--accent-color);
+   border-bottom: 2px solid var(--accent-color);
+}
+
+#favoritesBtn:hover {
+   color: var(--accent-color) !important;
+   transform: scale(1.1);
+}
+
+/* قسم البحث والتنسيق */
+header {
+   text-align: center;
+   margin-top: 40px;
+   width: 100%;
+}
+header h1 { color: #007acc; }
+
+.search-section {
+   display: flex;
+   justify-content: center;
+   gap: 10px;
+   margin-top: 20px;
+   position: relative; /* مهم جداً للاقتراحات الذكية */
+}
+
+#langFilter {
+   padding: 12px;
+   border-radius: 8px;
+   background-color: var(--input-bg);
+   color: var(--text-color);
+   border: 1px solid var(--border-color);
+   cursor: pointer;
+}
+
+/* حاوية البحث والاقتراحات */
+.search-container {
+   position: relative;
+   width: 50%;
+   max-width: 500px;
+}
+
+#searchInput {
+   width: 100%;
+   padding: 12px;
+   border-radius: 8px;
+   border: 1px solid var(--border-color);
+   background-color: var(--input-bg);
+   color: var(--text-color);
+   box-sizing: border-box;
+}
+
+/* صندوق البحث الذكي (مثل جوجل) */
+.suggestions-box {
+   position: absolute;
+   top: 100%;
+   right: 0;
+   width: 100%;
+   background-color: var(--card-bg);
+   border: 1px solid var(--border-color);
+   border-top: none;
+   border-radius: 0 0 8px 8px;
+   list-style: none;
+   padding: 0;
+   margin: 0;
+   z-index: 10;
+   display: none; /* مخفي افتراضياً */
+   box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+.suggestions-box li {
+   padding: 12px;
+   cursor: pointer;
+   border-bottom: 1px solid var(--border-color);
+   text-align: right;
+   transition: 0.2s;
+}
+.suggestions-box li:hover {
+   background-color: var(--accent-color);
+   color: white;
+}
+
+/* تنسيق البطاقات (الكود والمعلومات الشخصية) */
+main {
+   width: 90%;
+   max-width: 800px;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   flex-grow: 1; /* لدفع الفوتر للأسفل */
+}
+
+.code-card, .about-card {
+   background-color: var(--card-bg);
+   border: 1px solid var(--border-color);
+   padding: 30px;
+   border-radius: 12px;
+   width: 100%;
+   margin-top: 15px;
+   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+   box-sizing: border-box;
+   transition: background-color 0.3s, border-color 0.3s;
+}
+
+.about-card { text-align: right; line-height: 1.8; }
+.title-job { color: #007acc; margin-top: -15px;}
+.info-list { list-style-type: square; color: #ccc; }
+
+.lang-badge {
+   background-color: var(--accent-color);
+   color: white;
+   padding: 5px 15px;
+   border-radius: 20px;
+   font-size: 14px;
+}
+
+#displayTitle { text-align: right; color: #fff; margin-bottom: 15px;}
+
+/* مربع الكود من اليسار لليمين */
+pre {
+   background-color: var(--bg-color);
+   padding: 20px;
+   border-radius: 8px;
+   direction: ltr;
+   text-align: left;
+   overflow-x: auto;
+   border-left: 4px solid var(--accent-color);
+}
+
+#displayCode {
+   font-family: 'Consolas', monospace;
+   font-size: 16px;
+   color: #4CAF50; /* لون أخضر جميل للكود */
+}
+
+button {
+   background-color: var(--accent-color);
+   color: white;
+   border: none;
+   padding: 10px 25px;
+   border-radius: 8px;
+   cursor: pointer;
+   font-size: 16px;
+   margin-top: 15px;
+   transition: 0.3s;
+}
+button:hover { background-color: #005f9e; transform: scale(1.05); }
+
+/* الفوتر حقوق النشر */
+footer {
+   width: 100%;
+   text-align: center;
+   padding: 20px 0;
+   background-color: var(--card-bg);
+   color: #777;
+   margin-top: 40px;
+   font-size: 14px;
+}
+/* ========================================= */
+/* حركات CSS (الأنيميشن) جاهزة للتطوير       */
+/* ========================================= */
+.fade-in {
+   animation: fadeIn 1s ease-in-out;
+}
+.slide-up {
+   animation: slideUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+
+
+
+
+ 
+@keyframes fadeIn {
+   from { opacity: 0; }
+   to { opacity: 1; }
+}
+@keyframes slideUp {
+   from { opacity: 0; transform: translateY(30px); }
+   to { opacity: 1; transform: translateY(0); }
+}
+/* شخصية الموقع */
+#assistant {
+   position: fixed;
+   bottom: 20px;
+   left: 20px;
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   z-index: 999;
+   animation: float 3s ease-in-out infinite;
+  }
+  
+  #assistantImg {
+   width: 70px;
+   height: 70px;
+  }
+  
+  #assistantMessage {
+   background: var(--card-bg);
+   padding: 10px 15px;
+   border-radius: 10px;
+   border: 1px solid var(--border-color);
+   font-size: 14px;
+   color: var(--text-color);
+  }
+  
+  /* حركة طفو */
+  @keyframes float {
+   0% { transform: translateY(0px); }
+   50% { transform: translateY(-8px); }
+   100% { transform: translateY(0px); }
+  }
+  
+  /* حركة عند المرور */
+  .code-card:hover {
+   transform: translateY(-5px);
+   transition: 0.3s;
+   box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+}
+
+button:hover {
+   transform: scale(1.05);
+   box-shadow: 0 5px 15px rgba(0,122,204,0.4);
+}
+
+/* تحسينات إضافية */
+.search-section {
+   animation: slideInFromTop 0.8s ease-out;
+}
+
+@keyframes slideInFromTop {
+   from { opacity: 0; transform: translateY(-30px); }
+   to { opacity: 1; transform: translateY(0); }
+}
+
+.code-card {
+   animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+   from { opacity: 0; transform: translateY(20px); }
+   to { opacity: 1; transform: translateY(0); }
+}
+
+/* تحسين النوافذ المنبثقة */
+.alert-custom {
+   position: fixed;
+   top: 20px;
+   right: 20px;
+   background: var(--card-bg);
+   color: var(--text-color);
+   padding: 15px 20px;
+   border-radius: 10px;
+   border-left: 4px solid var(--accent-color);
+   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+   z-index: 1001;
+   animation: slideInRight 0.5s ease-out;
+   max-width: 300px;
+   word-wrap: break-word;
+}
+
+@keyframes slideInRight {
+   from { opacity: 0; transform: translateX(100px); }
+   to { opacity: 1; transform: translateX(0); }
+}
+
+/* تأثير ripple للأزرار */
+@keyframes ripple {
+   to {
+       transform: scale(4);
+       opacity: 0;
+   }
+}
+
+button {
+   position: relative;
+   overflow: hidden;
+}
+
+/* تحسين الأزرار */
+#copyBtn {
+   position: relative;
+   overflow: hidden;
+}
+
+#copyBtn::before {
+   content: '';
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   width: 0;
+   height: 0;
+   background: rgba(255,255,255,0.2);
+   border-radius: 50%;
+   transform: translate(-50%, -50%);
+   transition: width 0.6s, height 0.6s;
+}
+
+#copyBtn:active::before {
+   width: 300px;
+   height: 300px;
+}
+  

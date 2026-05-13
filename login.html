@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تسجيل الدخول | مستودع الأكواد</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="auth.js"></script>
+</head>
+<body>
+     <nav class="navbar">
+        <a href="index.html">الرئيسية</a>
+        <a href="ai.html">الذكاء الاصطناعي</a>
+        <a href="comments.html">تعليقاتكم</a>
+        <a href="login.html"class="active" id="loginNav">تسجيل الدخول</a>
+        <a href="about.html">من أنا</a>
+        <button id="favoritesBtn" onclick="showFavorites()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 15px; padding: 5px 10px; transition: 0.3s;">⭐ المفضلات</button>
+    </nav>
+    <main class="slide-up" style="margin-top: 100px;">
+        <div class="code-card" style="max-width: 400px; text-align: center;">
+            <h2>تسجيل دخول الطلاب</h2>
+            <div id="googleButton" style="width:100%; margin-top: 20px;"></div>
+            <div id="authMessage" style="margin-top: 10px; font-size: 14px; color: #ffcccb;"></div>
+            <div style="margin: 20px 0; color: #ccc; font-size: 14px; text-align: center;">أو سجل الدخول باسم المستخدم وكلمة المرور</div>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 0;">
+                <input type="text" id="username" placeholder="اسم المستخدم" style="padding: 12px; border-radius: 8px; background: #2d2d2d; color: white; border: 1px solid #444;">
+                <input type="password" id="password" placeholder="كلمة المرور" style="padding: 12px; border-radius: 8px; background: #2d2d2d; color: white; border: 1px solid #444;">
+                <button onclick="login()">دخول</button>
+            </div>
+            <p id="loginStatus" style="margin-top: 15px; font-size: 14px;"></p>
+        </div>
+    </main>
+
+    <script class="fade-In">
+        async function login() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const backendUrl = getBackendBaseUrl();
+
+            if (!backendUrl) {
+                showAuthMessage('الخادم غير محدد. اضبط BACKEND_BASE_URL في config.js.');
+                return;
+            }
+
+            const response = await fetch(`${backendUrl}/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username: user, password: pass })
+            });
+            const data = await response.json();
+            
+            if (response.ok && data.status === "success") {
+                setAuth({
+                    token: data.token,
+                    email: data.email,
+                    name: data.name,
+                    role: data.role,
+                    provider: 'local'
+                });
+                window.location.href = "ai.html";
+            } else {
+                showAuthMessage(data.message || "خطأ في البيانات، حاول مجدداً.");
+            }
+        }
+
+        function showCustomAlert(message) {
+            const existingAlerts = document.querySelectorAll('.alert-custom');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-custom';
+            alertDiv.innerText = message;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+  
+              function showFavorites() {
+            const favCodes = JSON.parse(localStorage.getItem('favorites')) || [];
+            if (favCodes.length === 0) {
+                showCustomAlert('لا توجد أكواد محفوظة في المفضلات');
+                return;
+            }
+            
+            let message = 'أكوادك المفضلة:\n\n';
+            favCodes.forEach((code, index) => {
+                message += `${index + 1}. ${code}\n`;
+            });
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-custom';
+            alertDiv.style.whiteSpace = 'pre-wrap';
+            alertDiv.innerText = message;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+       
+    </script>
+</body>
+</html>
