@@ -151,7 +151,7 @@ function isHomePage() {
 function initLoginPage() {
     const auth = getAuth();
     if (auth && auth.email) {
-        window.location.href = '/ai';
+        window.location.href = '/';
         return;
     }
     initGoogleSignIn();

@@ -335,8 +335,7 @@ document.addEventListener('keydown', (e) => {
     }
     if ((e.ctrlKey || e.metaKey) && e.key === 't') {
         e.preventDefault();
-        isDarkMode = !isDarkMode;
-        applyTheme();
+        if (typeof toggleTheme === 'function') toggleTheme();
     }
     if (e.key === 'Escape') {
         if (suggestionsList) suggestionsList.style.display = 'none';

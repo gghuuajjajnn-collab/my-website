@@ -2,6 +2,7 @@ const siteRoutes = [
     { href: '/', label: 'الرئيسية' },
     { href: '/ai', label: 'الذكاء الاصطناعي' },
     { href: '/comments', label: 'تعليقاتكم' },
+    { href: '/favorites', label: 'المفضلات', id: 'favoritesNav' },
     { href: '/login', label: 'تسجيل الدخول', id: 'loginNav' },
     { href: '/about', label: 'من أنا' }
 ];
@@ -38,7 +39,8 @@ function createNavbar() {
     if (themeToggle) {
         themeToggle.addEventListener('click', toggleTheme);
     }
-    applyTheme();
+    // initialize theme and navbar auth state
+    initTheme();
     updateNavAuth();
 }
 
@@ -92,5 +94,22 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('storage', (event) => {
     if (event.key === 'siteTheme') {
         setTheme(event.newValue || 'dark');
+    }
+});
+
+// Global keyboard shortcut: Ctrl/Cmd+T toggles theme across all pages
+window.addEventListener('keydown', (e) => {
+    try {
+        if (!e.key) return;
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
+            const active = document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
+                return;
+            }
+            e.preventDefault();
+            if (typeof toggleTheme === 'function') toggleTheme();
+        }
+    } catch (err) {
+        // ignore errors from unexpected environments
     }
 });

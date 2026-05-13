@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المفضلات | مستودع الأكواد</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="common.js"></script>
+</head>
+<body>
+    <div id="navContainer"></div>
+
+    <main class="fade-in" style="margin-top: 50px; width: 90%; max-width: 800px;">
+        <div class="code-card">
+            <h2>المفضلات</h2>
+            <p id="favIntro" style="color: var(--text-color);">قائمة الأكواد التي قمت بحفظها.</p>
+            <div id="favoritesList"></div>
+        </div>
+    </main>
+
+    <script>
+        function renderFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const favList = document.getElementById('favoritesList');
+            favList.innerHTML = '';
+            if (favorites.length === 0) {
+                favList.innerHTML = '<p>لا توجد أكواد محفوظة في المفضلات.</p>';
+                return;
+            }
+
+            const codes = window.myCode || [];
+            favorites.forEach(title => {
+                const item = codes.find(c => c.title === title);
+                const card = document.createElement('div');
+                card.className = 'comment-card';
+                card.style.padding = '12px';
+                card.style.marginBottom = '10px';
+                card.style.display = 'flex';
+                card.style.justifyContent = 'space-between';
+                card.style.alignItems = 'center';
+                card.innerHTML = `
+                    <div style="text-align:right; max-width:80%">
+                        <strong>${title}</strong><br>
+                        <small style='color:var(--text-color)'>${item ? item.lang : ''}</small>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="viewFavorite('${encodeURIComponent(title)}')">عرض</button>
+                        <button onclick="removeFavorite('${encodeURIComponent(title)}')">حذف</button>
+                    </div>
+                `;
+                favList.appendChild(card);
+            });
+        }
+
+        function removeFavorite(encodedTitle) {
+            const title = decodeURIComponent(encodedTitle);
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            favorites = favorites.filter(t => t !== title);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            renderFavorites();
+            if (typeof updateNavAuth === 'function') updateNavAuth();
+        }
+
+        function viewFavorite(encodedTitle) {
+            const title = decodeURIComponent(encodedTitle);
+            const codes = window.myCode || [];
+            const item = codes.find(c => c.title === title);
+            if (!item) {
+                alert('لم أتمكن من العثور على الكود هنا.');
+                return;
+            }
+            const popup = document.createElement('div');
+            popup.style.cssText = `position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:2000;`;
+            const box = document.createElement('div');
+            box.style.cssText = `background:var(--card-bg);color:var(--text-color);padding:20px;border-radius:10px;max-width:90%;max-height:80%;overflow:auto;text-align:left;`;
+            box.innerHTML = `<h3>${item.title} <small style='color:var(--text-color)'>(${item.lang})</small></h3><pre style='direction:ltr;text-align:left'>${item.code}</pre><div style='text-align:right;margin-top:10px'><button id='closeFav'>إغلاق</button></div>`;
+            popup.appendChild(box);
+            document.body.appendChild(popup);
+            document.getElementById('closeFav').onclick = () => popup.remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFavorites();
+        });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المفضلات | مستودع الأكواد</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="common.js"></script>
+</head>
+<body>
+    <div id="navContainer"></div>
+
+    <main class="fade-in" style="margin-top: 50px; width: 90%; max-width: 800px;">
+        <div class="code-card">
+            <h2>المفضلات</h2>
+            <p id="favIntro" style="color: var(--text-color);">قائمة الأكواد التي قمت بحفظها.</p>
+            <div id="favoritesList"></div>
+        </div>
+    </main>
+
+    <script>
+        function renderFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const favList = document.getElementById('favoritesList');
+            favList.innerHTML = '';
+            if (favorites.length === 0) {
+                favList.innerHTML = '<p>لا توجد أكواد محفوظة في المفضلات.</p>';
+                return;
+            }
+
+            const codes = window.myCode || [];
+            favorites.forEach(title => {
+                const item = codes.find(c => c.title === title);
+                const card = document.createElement('div');
+                card.className = 'comment-card';
+                card.style.padding = '12px';
+                card.style.marginBottom = '10px';
+                card.style.display = 'flex';
+                card.style.justifyContent = 'space-between';
+                card.style.alignItems = 'center';
+                card.innerHTML = `
+                    <div style="text-align:right; max-width:80%">
+                        <strong>${title}</strong><br>
+                        <small style='color:var(--text-color)'>${item ? item.lang : ''}</small>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="viewFavorite('${encodeURIComponent(title)}')">عرض</button>
+                        <button onclick="removeFavorite('${encodeURIComponent(title)}')">حذف</button>
+                    </div>
+                `;
+                favList.appendChild(card);
+            });
+        }
+
+        function removeFavorite(encodedTitle) {
+            const title = decodeURIComponent(encodedTitle);
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            favorites = favorites.filter(t => t !== title);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            renderFavorites();
+            if (typeof updateNavAuth === 'function') updateNavAuth();
+        }
+
+        function viewFavorite(encodedTitle) {
+            const title = decodeURIComponent(encodedTitle);
+            const codes = window.myCode || [];
+            const item = codes.find(c => c.title === title);
+            if (!item) {
+                alert('لم أتمكن من العثور على الكود هنا.');
+                return;
+            }
+            const popup = document.createElement('div');
+            popup.style.cssText = `position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:2000;`;
+            const box = document.createElement('div');
+            box.style.cssText = `background:var(--card-bg);color:var(--text-color);padding:20px;border-radius:10px;max-width:90%;max-height:80%;overflow:auto;text-align:left;`;
+            box.innerHTML = `<h3>${item.title} <small style='color:var(--text-color)'>(${item.lang})</small></h3><pre style='direction:ltr;text-align:left'>${item.code}</pre><div style='text-align:right;margin-top:10px'><button id='closeFav'>إغلاق</button></div>`;
+            popup.appendChild(box);
+            document.body.appendChild(popup);
+            document.getElementById('closeFav').onclick = () => popup.remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFavorites();
+        });
+    </script>
+</body>
+</html>
