@@ -1,5 +1,32 @@
-// 1. قاعدة البيانات (مصفوفة الأكواد)
-const myCode = [
+// ==========================================
+// 1. Firebase Configuration (نفس التعليقات)
+// ==========================================
+const firebaseConfig = {
+    apiKey: "AIzaSyApTn4C_mRycCfC8A58G4VKrbhtmbkVk2A",
+    authDomain: "mycollageapp-597bd.firebaseapp.com",
+    databaseURL: "https://mycollageapp-597bd-default-rtdb.firebaseio.com",
+    projectId: "mycollageapp-597bd",
+    storageBucket: "mycollageapp-597bd.firebasestorage.app",
+    messagingSenderId: "697363114840",
+    appId: "1:697363114840:web:ffdf90200ff478b137d32d",
+    measurementId: "G-N5GH394R1G"
+};
+
+// Initialize Firebase
+let db;
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.database();
+} catch(e) {
+    console.log('Firebase init error:', e);
+}
+
+// ==========================================
+// 2. قاعدة البيانات المحلية (Fallback)
+// ==========================================
+const defaultCodes = [
     {
         title: "دالة الوقت والتاريخ",
         lang: "Python",
@@ -78,17 +105,17 @@ const myCode = [
     {
         title: "إنشاء كلاس في جافا",
         lang: "Java",
-        code: `public class Student {\n    private String name;\n    private int age;\n    \n    public Student(String name, int age) {\n        this.name = name;\n        this.age = age;\n    }\n    \n    public String getName() {\n        return name;\n    }\n    \n    public void setName(String name) {\n        this.name = name;\n    }\n    \n    public int getAge() {\n        return age;\n    }\n    \n    public void setAge(int age) {\n        this.age = age;\n    }\n    \n    public void displayInfo() {\n        System.out.println("Name: " + name + ", Age: " + age);\n    }\n}`
+        code: `public class Student {\n    private String name;\n    private int age;\n    \n    public Student(String name, int age) {\n        this.name = name;\n        this.age = age;\n    }\n    \n    public String getName() { return name; }\n    public void setName(String name) { this.name = name; }\n    public int getAge() { return age; }\n    public void setAge(int age) { this.age = age; }\n    \n    public void displayInfo() {\n        System.out.println("Name: " + name + ", Age: " + age);\n    }\n}`
     },
     {
         title: "إنشاء مصفوفة ديناميكية",
         lang: "C++",
-        code: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    vector<int> numbers;\n    \n    // إضافة عناصر\n    numbers.push_back(10);\n    numbers.push_back(20);\n    numbers.push_back(30);\n    \n    // عرض العناصر\n    cout << "العناصر: ";\n    for(int num : numbers) {\n        cout << num << " ";\n    }\n    cout << endl;\n    \n    // حجم المصفوفة\n    cout << "الحجم: " << numbers.size() << endl;\n    \n    return 0;\n}`
+        code: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    vector<int> numbers;\n    numbers.push_back(10);\n    numbers.push_back(20);\n    numbers.push_back(30);\n    \n    cout << "العناصر: ";\n    for(int num : numbers) {\n        cout << num << " ";\n    }\n    cout << endl;\n    cout << "الحجم: " << numbers.size() << endl;\n    return 0;\n}`
     },
     {
         title: "تحويل JSON إلى كائن",
         lang: "JavaScript",
-        code: `// تحويل JSON string إلى كائن\nlet jsonString = '{"name": "أحمد", "age": 25, "city": "صنعاء"}';\nlet person = JSON.parse(jsonString);\n\nconsole.log(person.name); // أحمد\nconsole.log(person.age);  // 25\n\n// تحويل كائن إلى JSON string\nlet personObject = {\n    name: "فاطمة",\n    age: 22,\n    city: "عدن"\n};\nlet jsonOutput = JSON.stringify(personObject);\nconsole.log(jsonOutput);`
+        code: `let jsonString = '{"name": "أحمد", "age": 25, "city": "صنعاء"}';\nlet person = JSON.parse(jsonString);\n\nconsole.log(person.name); // أحمد\nconsole.log(person.age);  // 25\n\nlet personObject = {\n    name: "فاطمة",\n    age: 22,\n    city: "عدن"\n};\nlet jsonOutput = JSON.stringify(personObject);\nconsole.log(jsonOutput);`
     },
     {
         title: "قراءة ملف CSV",
@@ -108,7 +135,7 @@ const myCode = [
     {
         title: "طباعة تاريخ اليوم",
         lang: "Python",
-        code: `from datetime import datetime\n\n# الحصول على التاريخ والوقت الحالي\nnow = datetime.now()\n\n# تنسيق التاريخ\nformatted_date = now.strftime("%Y-%m-%d")\nformatted_time = now.strftime("%H:%M:%S")\n\nprint("التاريخ:", formatted_date)\nprint("الوقت:", formatted_time)\nprint("التاريخ الكامل:", now.strftime("%A, %B %d, %Y"))`
+        code: `from datetime import datetime\n\nnow = datetime.now()\nformatted_date = now.strftime("%Y-%m-%d")\nformatted_time = now.strftime("%H:%M:%S")\n\nprint("التاريخ:", formatted_date)\nprint("الوقت:", formatted_time)\nprint("التاريخ الكامل:", now.strftime("%A, %B %d, %Y"))`
     },
     {
         title: "إنشاء قائمة مرتبطة",
@@ -117,8 +144,40 @@ const myCode = [
     }
 ];
 
+// Global codes array - will be populated from Firebase + defaults
+let myCode = [...defaultCodes];
+let currentCodeItem = null;
+
+// Load codes from Firebase
+function loadCodesFromFirebase() {
+    if (!db) return;
+    
+    db.ref('codes').on('value', (snapshot) => {
+        const firebaseCodes = [];
+        snapshot.forEach((child) => {
+            firebaseCodes.push({
+                ...child.val(),
+                key: child.key,
+                isDynamic: true
+            });
+        });
+        
+        // Merge: Firebase codes take precedence, but keep defaults that aren't in Firebase
+        const firebaseTitles = new Set(firebaseCodes.map(c => c.title));
+        myCode = [
+            ...firebaseCodes,
+            ...defaultCodes.filter(c => !firebaseTitles.has(c.title))
+        ];
+        
+        // Update search if active
+        if (searchInput && searchInput.value.trim()) {
+            searchInput.dispatchEvent(new Event('input'));
+        }
+    });
+}
+
 // ==========================================
-// 2. تعريف المتغيرات
+// 3. تعريف المتغيرات
 // ==========================================
 const assistantMessage = document.getElementById("assistantMessage");
 const searchInput = document.getElementById('searchInput');
@@ -129,7 +188,7 @@ const langHeader = document.getElementById('langHeader');
 const welcomeMessag = document.getElementById('welcomeMessag');
 
 // ==========================================
-// 3. نظام البحث الذكي والاقتراحات
+// 4. نظام البحث الذكي والاقتراحات
 // ==========================================
 if (searchInput) {
     searchInput.addEventListener('input', function() {
@@ -157,7 +216,11 @@ if (searchInput) {
             
             suggestions.forEach(item => {
                 const li = document.createElement('li');
-                li.textContent = item.title + " (" + item.lang + ")";
+                li.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+                li.innerHTML = `
+                    <span>${item.title}</span>
+                    <span style="background:var(--accent-color); color:white; padding:2px 8px; border-radius:12px; font-size:11px;">${item.lang}</span>
+                `;
                 li.onclick = () => {
                     searchInput.value = item.title; 
                     suggestionsList.style.display = 'none'; 
@@ -179,38 +242,85 @@ document.addEventListener('click', function(e) {
 });
 
 // ==========================================
-// 4. دوال العرض والإخفاء والنسخ والتنبيهات
+// 5. Syntax Highlighting
+// ==========================================
+function highlightSyntax(code, lang) {
+    let html = escapeHtml(code);
+    
+    const colors = {
+        keyword: '#ff79c6',
+        string: '#f1fa8c',
+        comment: '#6272a4',
+        number: '#bd93f9',
+        function: '#8be9fd'
+    };
+    
+    if (lang === 'Python') {
+        html = html.replace(/\b(def|class|return|if|else|elif|for|while|import|from|try|except|with|as|print|pass|break|continue|lambda|yield|raise|assert|del|global|nonlocal)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+        html = html.replace(/\b(True|False|None)\b/g, `<span style="color:${colors.number}">$1</span>`);
+        html = html.replace(/(#.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+        html = html.replace(/(".*?"|'.*?')/g, `<span style="color:${colors.string}">$1</span>`);
+        html = html.replace(/\b(\d+)\b/g, `<span style="color:${colors.number}">$1</span>`);
+    } else if (lang === 'JavaScript') {
+        html = html.replace(/\b(function|return|var|let|const|if|else|for|while|do|try|catch|finally|throw|new|this|typeof|instanceof|in|of|void|delete|debugger|async|await|class|extends|super|import|export|default|from)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+        html = html.replace(/\b(true|false|null|undefined|NaN|Infinity)\b/g, `<span style="color:${colors.number}">$1</span>`);
+        html = html.replace(/(\/\/.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+        html = html.replace(/(\/\*[\s\S]*?\*\/)/g, `<span style="color:${colors.comment}">$1</span>`);
+        html = html.replace(/(".*?"|'.*?'|`.*?`)/g, `<span style="color:${colors.string}">$1</span>`);
+        html = html.replace(/\b(\d+)\b/g, `<span style="color:${colors.number}">$1</span>`);
+    } else if (lang === 'C++') {
+        html = html.replace(/\b(int|float|double|char|void|bool|long|short|unsigned|signed|auto|const|static|extern|register|volatile|mutable|inline|virtual|explicit|override|final|return|if|else|for|while|do|switch|case|default|break|continue|goto|try|catch|throw|new|delete|class|struct|union|enum|typedef|template|typename|namespace|using|public|protected|private|friend|operator|sizeof|typeof|decltype)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+        html = html.replace(/\b(true|false|null|nullptr)\b/g, `<span style="color:${colors.number}">$1</span>`);
+        html = html.replace(/(\/\/.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+        html = html.replace(/(".*?")/g, `<span style="color:${colors.string}">$1</span>`);
+        html = html.replace(/\b(\d+)\b/g, `<span style="color:${colors.number}">$1</span>`);
+    } else if (lang === 'Java') {
+        html = html.replace(/\b(abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|void|volatile|while|true|false|null)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+        html = html.replace(/(\/\/.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+        html = html.replace(/(".*?")/g, `<span style="color:${colors.string}">$1</span>`);
+        html = html.replace(/\b(\d+)\b/g, `<span style="color:${colors.number}">$1</span>`);
+    }
+    
+    return html;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ==========================================
+// 6. دوال العرض والإخفاء والنسخ
 // ==========================================
 function displayResult(item) {
+    currentCodeItem = item;
+    
     if (assistantMessage) assistantMessage.innerText = "وجدت الكود 😎";
 
     if (resultCard) resultCard.style.display = "block";
     if (langHeader) langHeader.style.display = "block";
     if (welcomeMessag) welcomeMessag.style.display = "none";
     
-    document.getElementById('displayTitle').innerText = item.title;
-    document.getElementById('displayLang').innerText = item.lang;
-    document.getElementById('displayCode').innerText = item.code;
+    const titleEl = document.getElementById('displayTitle');
+    const langEl = document.getElementById('displayLang');
+    const codeEl = document.getElementById('displayCode');
+    const badgeEl = document.getElementById('codeLangBadge');
     
-    let favBtn = document.getElementById('favBtn');
-    if (!favBtn) {
-        favBtn = document.createElement('button');
-        favBtn.id = 'favBtn';
-        favBtn.style.cssText = `
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: 0.3s;
-        `;
-        favBtn.onclick = () => toggleFavorite(item.title);
-        document.getElementById('displayTitle').appendChild(favBtn);
+    if (titleEl) titleEl.innerText = item.title;
+    if (langEl) langEl.innerText = item.lang;
+    if (badgeEl) badgeEl.innerText = item.lang;
+    
+    // Apply syntax highlighting
+    if (codeEl) {
+        codeEl.innerHTML = highlightSyntax(item.code, item.lang);
     }
+    
     updateFavoriteButton(item.title);
 }
 
 function hideResult() {
+    currentCodeItem = null;
     if (assistantMessage) assistantMessage.innerText = "حاول كلمة أخرى 🤔";
 
     if (resultCard) resultCard.style.display = "none";
@@ -219,45 +329,113 @@ function hideResult() {
 }
 
 function copyCode() {
+    if (!currentCodeItem) return;
+    
     if (assistantMessage) assistantMessage.innerText = "تم النسخ بنجاح 🚀";
-    const codeText = document.getElementById('displayCode').innerText;
-    navigator.clipboard.writeText(codeText);
-    showCustomAlert("تم نسخ الكود بنجاح! ✅<br>يمكنك الآن لصقه في مشروعك");
+    navigator.clipboard.writeText(currentCodeItem.code);
+    showCustomAlert("تم نسخ الكود بنجاح! ✅<<br>يمكنك الآن لصقه في مشروعك");
 }
 
-function showCustomAlert(message) {
-    const existingAlerts = document.querySelectorAll('.alert-custom');
-    existingAlerts.forEach(alert => alert.remove());
+function executeCurrentCode() {
+    if (!currentCodeItem) return;
     
-    const alertDiv = document.createElement('div');
-    alertDiv.className = 'alert-custom';
-    alertDiv.innerHTML = message;
+    const lang = currentCodeItem.lang;
+    const code = currentCodeItem.code;
     
-    // تنسيق التنبيه ليكون جميلاً
-    alertDiv.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 10px;
-        background: var(--card-bg, #1e1e1e);
-        color: var(--text-color, #fff);
-        border-right: 4px solid #007acc;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        z-index: 1000;
-        text-align: right;
+    if (lang === 'JavaScript') {
+        try {
+            // Create a safe output capture
+            let output = [];
+            const mockConsole = {
+                log: (...args) => output.push(args.join(' ')),
+                error: (...args) => output.push('Error: ' + args.join(' ')),
+                warn: (...args) => output.push('Warn: ' + args.join(' '))
+            };
+            
+            // Wrap in function with mock console
+            const func = new Function('console', code);
+            func(mockConsole);
+            
+            showExecutionResult(output.join('\n') || 'تم التنفيذ بنجاح (لا يوجد output)');
+        } catch (err) {
+            showExecutionResult('خطأ: ' + err.message, true);
+        }
+    } else if (lang === 'Python') {
+        showExecutionResult(
+            'تشغيل بايثون يتطلب خادم Backend.\n' +
+            'الكود جاهز للتشغيل:\n\n' + 
+            code.substring(0, 200) + '...', 
+            false, true
+        );
+    } else {
+        showExecutionResult(
+            `تشغيل كود ${lang} يتطلب بيئة تطوير متخصصة.\n` +
+            'الكود جاهز للنسخ والتشغيل في IDE مناسب.',
+            false, true
+        );
+    }
+}
+
+function showExecutionResult(output, isError = false, isInfo = false) {
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+        background:rgba(0,0,0,0.8); z-index:2000; padding:20px;
     `;
     
-    document.body.appendChild(alertDiv);
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 3000);
+    const box = document.createElement('div');
+    box.style.cssText = `
+        background:var(--card-bg); color:var(--text-color); padding:25px;
+        border-radius:15px; max-width:90%; max-height:80vh; overflow:auto;
+        text-align:right; border:2px solid ${isError ? 'var(--error-color)' : isInfo ? 'var(--accent-color)' : 'var(--success-color)'};
+        width:600px; box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    `;
+    
+    box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0; color:${isError ? 'var(--error-color)' : isInfo ? 'var(--accent-color)' : 'var(--success-color)'};">
+                ${isError ? '❌ خطأ' : isInfo ? 'ℹ️ معلومة' : '✅ نتيجة التنفيذ'}
+            </h3>
+            <button onclick="this.closest('.exec-popup').remove()" style="padding:5px 15px; font-size:12px;">إغلاق</button>
+        </div>
+        <pre style="background:var(--bg-color); padding:15px; border-radius:8px; direction:ltr; text-align:left; overflow-x:auto; font-family:monospace; font-size:13px; line-height:1.6; color:${isError ? '#ff6b6b' : 'var(--text-color)'};">${escapeHtml(output)}</pre>
+    `;
+    
+    popup.className = 'exec-popup';
+    popup.appendChild(box);
+    document.body.appendChild(popup);
+    
+    popup.onclick = (e) => {
+        if (e.target === popup) popup.remove();
+    };
+}
+
+function shareCode() {
+    if (!currentCodeItem) return;
+    
+    const shareData = {
+        title: currentCodeItem.title,
+        text: `كود: ${currentCodeItem.title}\nلغة: ${currentCodeItem.lang}\n\n${currentCodeItem.code.substring(0, 100)}...`,
+        url: window.location.href
+    };
+    
+    if (navigator.share) {
+        navigator.share(shareData);
+    } else {
+        navigator.clipboard.writeText(shareData.text);
+        showCustomAlert('تم نسخ تفاصيل الكود للمشاركة! 📋');
+    }
 }
 
 // ==========================================
-// 6. وظائف المفضلات
+// 7. وظائف المفضلات
 // ==========================================
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+function toggleCurrentFavorite() {
+    if (!currentCodeItem) return;
+    toggleFavorite(currentCodeItem.title);
+}
 
 function toggleFavorite(title) {
     const index = favorites.indexOf(title);
@@ -286,21 +464,133 @@ function updateFavoriteButton(title) {
 function showFavorites() {
     const favCodes = myCode.filter(code => favorites.includes(code.title));
     if (favCodes.length === 0) {
-        showCustomAlert('لا توجد أكواد محفوظة في المفضلات ⭐<br>اضغط على ❤️ بجانب أي كود لإضافته للمفضلات');
+        showCustomAlert('لا توجد أكواد محفوظة في المفضلات ⭐<<br>اضغط على ❤️ بجانب أي كود لإضافته للمفضلات');
         return;
     }
     
     let message = '<strong>أكوادك المفضلة ❤️</strong><br><br>';
     favCodes.forEach((code, index) => {
-        message += `${index + 1}. <strong>${code.title}</strong> (${code.lang})<br>`;
+        message += `${index + 1}. <strong>${code.title}</strong> (${code.lang})<<br>`;
     });
     showCustomAlert(message);
 }
 
 // ==========================================
-// 7. تأثيرات الأزرار واختصارات لوحة المفاتيح
+// 8. إضافة كود جديد (للأدمن)
+// ==========================================
+function showAddCodeForm() {
+    const auth = typeof getAuth === 'function' ? getAuth() : null;
+    if (!auth || auth.role !== 'admin') {
+        showCustomAlert('فقط الأدمن يمكنه إضافة أكواد جديدة');
+        return;
+    }
+    
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+        background:rgba(0,0,0,0.8); z-index:2000; padding:20px;
+    `;
+    
+    const box = document.createElement('div');
+    box.style.cssText = `
+        background:var(--card-bg); color:var(--text-color); padding:25px;
+        border-radius:15px; max-width:90%; max-height:90vh; overflow:auto;
+        text-align:right; border:2px solid var(--accent-color); width:500px;
+    `;
+    
+    box.innerHTML = `
+        <h3 style="margin-top:0; color:var(--accent-color);">➕ إضافة كود جديد</h3>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <input type="text" id="newCodeTitle" placeholder="عنوان الكود" style="padding:12px; border-radius:8px; background:var(--input-bg); border:1px solid var(--border-color); color:var(--text-color);">
+            <select id="newCodeLang" style="padding:12px; border-radius:8px; background:var(--input-bg); border:1px solid var(--border-color); color:var(--text-color);">
+                <option value="Python">Python</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="C++">C++</option>
+                <option value="Java">Java</option>
+            </select>
+            <textarea id="newCodeBody" placeholder="الكود هنا..." style="padding:12px; border-radius:8px; background:var(--input-bg); border:1px solid var(--border-color); color:var(--text-color); min-height:150px; font-family:monospace; direction:ltr; text-align:left;"></textarea>
+            <div style="display:flex; gap:10px;">
+                <button onclick="submitNewCode()" style="flex:1;">حفظ الكود</button>
+                <button onclick="this.closest('.add-popup').remove()" style="flex:1; background:var(--border-color);">إلغاء</button>
+            </div>
+        </div>
+    `;
+    
+    popup.className = 'add-popup';
+    popup.appendChild(box);
+    document.body.appendChild(popup);
+}
+
+async function submitNewCode() {
+    const title = document.getElementById('newCodeTitle').value.trim();
+    const lang = document.getElementById('newCodeLang').value;
+    const code = document.getElementById('newCodeBody').value.trim();
+    
+    if (!title || !code) {
+        showCustomAlert('الرجاء ملء جميع الحقول');
+        return;
+    }
+    
+    if (db) {
+        try {
+            await db.ref('codes').push({
+                title, lang, code,
+                timestamp: Date.now(),
+                addedBy: getAuth()?.email || 'unknown'
+            });
+            showCustomAlert('تم إضافة الكود بنجاح! ✅');
+            document.querySelector('.add-popup')?.remove();
+        } catch(e) {
+            showCustomAlert('خطأ في الحفظ: ' + e.message);
+        }
+    } else {
+        showCustomAlert('Firebase غير متصل. تأكد من الاتصال بالإنترنت.');
+    }
+}
+
+// ==========================================
+// 9. التنبيهات المخصصة
+// ==========================================
+function showCustomAlert(message) {
+    const existingAlerts = document.querySelectorAll('.alert-custom');
+    existingAlerts.forEach(alert => alert.remove());
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert-custom';
+    alertDiv.innerHTML = message;
+    
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        background: var(--card-bg, #1e1e1e);
+        color: var(--text-color, #fff);
+        border-right: 4px solid var(--accent-color);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        z-index: 1000;
+        text-align: right;
+        max-width: 350px;
+        word-wrap: break-word;
+        animation: slideInRight 0.5s ease-out;
+    `;
+    
+    document.body.appendChild(alertDiv);
+    setTimeout(() => {
+        alertDiv.style.animation = 'slideOutRight 0.5s ease-in';
+        setTimeout(() => alertDiv.remove(), 500);
+    }, 3000);
+}
+
+// ==========================================
+// 10. تأثيرات الأزرار واختصارات لوحة المفاتيح
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Load Firebase codes
+    loadCodesFromFirebase();
+    
+    // Ripple effect
     const buttons = document.querySelectorAll('button');
     buttons.forEach(button => {
         button.addEventListener('click', function(e) {
@@ -326,6 +616,19 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => ripple.remove(), 600);
         });
     });
+    
+    // Add Admin button if admin
+    const auth = typeof getAuth === 'function' ? getAuth() : null;
+    if (auth && auth.role === 'admin') {
+        const header = document.querySelector('header');
+        if (header) {
+            const adminBtn = document.createElement('button');
+            adminBtn.textContent = '➕ إضافة كود';
+            adminBtn.style.cssText = 'margin-top:15px; padding:8px 20px; font-size:14px;';
+            adminBtn.onclick = showAddCodeForm;
+            header.appendChild(adminBtn);
+        }
+    }
 });
 
 document.addEventListener('keydown', (e) => {
@@ -339,6 +642,7 @@ document.addEventListener('keydown', (e) => {
     }
     if (e.key === 'Escape') {
         if (suggestionsList) suggestionsList.style.display = 'none';
+        // Close popups
+        document.querySelectorAll('.exec-popup, .add-popup').forEach(p => p.remove());
     }
 });
-

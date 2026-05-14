@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مستودع الأكواد | محمد فتحي</title>
     <link rel="stylesheet" href="style.css">
-  
 </head>
 <body>
     <div id="navContainer"></div>
@@ -36,13 +35,41 @@
         </div>
 
         <div id="resultCard" class="code-card slide-up" style="display: none;">
-            <h3 id="displayTitle"></h3>
-            <pre><code id="displayCode"></code></pre>
-            <button type="button" id="copyBtn" onclick="copyCode()">نسخ الكود</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                <h3 id="displayTitle" style="margin:0;"></h3>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button type="button" id="favBtn" onclick="toggleCurrentFavorite()" style="background:none; border:none; font-size:24px; cursor:pointer; padding:5px;">🤍</button>
+                </div>
+            </div>
+            
+            <!-- Syntax Highlighting Container -->
+            <div style="background:var(--bg-color); border-radius:8px; overflow:hidden; border-left:4px solid var(--accent-color);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 15px; background:rgba(0,0,0,0.2); border-bottom:1px solid var(--border-color);">
+                    <span id="codeLangBadge" style="font-size:12px; color:var(--accent-color); font-family:monospace;"></span>
+                    <div style="display:flex; gap:5px;">
+                        <span style="width:12px; height:12px; border-radius:50%; background:#ff5f56;"></span>
+                        <span style="width:12px; height:12px; border-radius:50%; background:#ffbd2e;"></span>
+                        <span style="width:12px; height:12px; border-radius:50%; background:#27c93f;"></span>
+                    </div>
+                </div>
+                <div style="overflow-x:auto; padding:15px;">
+                    <pre style="margin:0; direction:ltr; text-align:left;"><code id="displayCode" style="font-family:'Consolas', 'Monaco', monospace; font-size:14px; line-height:1.6;"></code></pre>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">
+                <button type="button" id="copyBtn" onclick="copyCode()">📋 نسخ الكود</button>
+                <button type="button" onclick="executeCurrentCode()" style="background:var(--success-color);">▶️ تشغيل الكود</button>
+                <button type="button" onclick="shareCode()" style="background:var(--border-color);">🔗 مشاركة</button>
+            </div>
         </div>
 
         <div id="welcomeMessag" class="fade-in">
             <p>اكتب اسم الكود أو اختر اللغة للبدء...</p>
+            <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                <span style="background:var(--card-bg); padding:8px 15px; border-radius:20px; font-size:12px; border:1px solid var(--border-color);">💡 اضغط Ctrl+K للبحث السريع</span>
+                <span style="background:var(--card-bg); padding:8px 15px; border-radius:20px; font-size:12px; border:1px solid var(--border-color);">🌙 Ctrl+T لتبديل الوضع</span>
+            </div>
         </div>
     </main>
 
@@ -52,13 +79,27 @@
             <img src="robot.png" id="assistantImg">
             <div id="assistantMessage">مرحبا 👋 اكتب اسم الكود</div>
         </div>
-        
     </footer>
 
-     <script src="script.js"></script>
-</body>
-  <script src="config.js"></script>
+    <!-- Firebase SDK للأكواد الديناميكية -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script src="config.js"></script>
     <script src="auth.js"></script>
     <script src="common.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        // حماية الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!requireAuth()) return;
+            updateNavAuth();
+            
+            // إخفاء رابط الدخول
+            const loginLink = document.getElementById('loginNav');
+            if (loginLink) loginLink.style.display = 'none';
+        });
+    </script>
+</body>
 </html>
-
