@@ -7,6 +7,46 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+        <!-- القائمة الجانبية -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>🛠️ أدوات المطور</h3>
+            <button onclick="toggleSidebar()" class="close-sidebar">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <h4>📊 إحصائيات</h4>
+                <div class="stat-item">
+                    <span>عدد الأكواد:</span>
+                    <span id="totalCodes">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>المفضلات:</span>
+                    <span id="totalFavs">0</span>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h4>🎨 تخصيص</h4>
+                <button onclick="toggleTheme()" class="sidebar-btn">🌓 تبديل الوضع</button>
+                <button onclick="changeFontSize()" class="sidebar-btn">🔤 حجم الخط</button>
+            </div>
+            <div class="sidebar-section">
+                <h4>⚡ اختصارات</h4>
+                <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd> بحث</div>
+                <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>T</kbd> وضع</div>
+                <div class="shortcut-item"><kbd>ESC</kbd> إغلاق</div>
+            </div>
+            <div class="sidebar-section">
+                <h4>🔗 روابط سريعة</h4>
+                <a href="ai.html" class="sidebar-link">🤖 المساعد الذكي</a>
+                <a href="comments.html" class="sidebar-link">💬 التعليقات</a>
+                <a href="favorites.html" class="sidebar-link">❤️ المفضلات</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر فتح القائمة الجانبية -->
+    <button id="sidebarToggle" onclick="toggleSidebar()" class="sidebar-toggle" title="القائمة الجانبية">⚙️</button>
     <div id="navContainer"></div>
 
     <header class="fade-in">
@@ -99,6 +139,30 @@
             // إخفاء رابط الدخول
             const loginLink = document.getElementById('loginNav');
             if (loginLink) loginLink.style.display = 'none';
+        });
+    </script>
+    
+        <script>
+        // دوال القائمة الجانبية
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+        
+        function changeFontSize() {
+            const current = parseInt(getComputedStyle(document.body).fontSize) || 16;
+            const sizes = [14, 16, 18, 20];
+            const nextIndex = (sizes.indexOf(current) + 1) % sizes.length;
+            document.body.style.fontSize = sizes[nextIndex] + 'px';
+            localStorage.setItem('fontSize', sizes[nextIndex]);
+            showCustomAlert(`حجم الخط: ${sizes[nextIndex]}px`);
+        }
+        
+        // تحديث الإحصائيات
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('totalCodes').textContent = window.myCode ? window.myCode.length : 0;
+                document.getElementById('totalFavs').textContent = (JSON.parse(localStorage.getItem('favorites')) || []).length;
+            }, 1000);
         });
     </script>
 </body>

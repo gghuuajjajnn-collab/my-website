@@ -5,98 +5,335 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المساعد الذكي | محمد فتحي</title>
     <link rel="stylesheet" href="style.css">
-  
     <style>
-        .chat-container { width: 90%; max-width: 700px; background: #1e1e1e; border-radius: 15px; padding: 20px; margin-top: 30px; display: flex; flex-direction: column; height: 500px; }
-        #chatBox { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding: 10px; }
-        .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.6; }
-        .user-msg { background: #007acc; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
-        .bot-msg { background: #2d2d2d; align-self: flex-start; color: #eee; border-bottom-left-radius: 2px; border-right: 4px solid #007acc; }
-        .input-area { display: flex; gap: 10px; padding-top: 20px; }
-        input#userQuery { flex-grow: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #252525; color: white; }
+        .chat-container { 
+            width: 90%; 
+            max-width: 800px; 
+            background: var(--card-bg); 
+            border-radius: 15px; 
+            padding: 20px; 
+            margin-top: 30px; 
+            display: flex; 
+            flex-direction: column; 
+            height: 600px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        #chatBox { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            padding: 10px;
+        }
+        .msg { 
+            padding: 12px 18px; 
+            border-radius: 15px; 
+            max-width: 85%; 
+            line-height: 1.8;
+            font-size: 14px;
+            animation: fadeInUp 0.3s ease;
+        }
+        .user-msg { 
+            background: var(--accent-color); 
+            align-self: flex-end; 
+            color: white; 
+            border-bottom-right-radius: 2px; 
+        }
+        .bot-msg { 
+            background: var(--input-bg); 
+            align-self: flex-start; 
+            color: var(--text-color); 
+            border-bottom-left-radius: 2px; 
+            border-right: 4px solid var(--accent-color);
+        }
+        .bot-msg pre {
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            margin: 10px 0;
+            border-left: 3px solid var(--success-color);
+        }
+        .bot-msg code {
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            color: #4CAF50;
+        }
+        .input-area { 
+            display: flex; 
+            gap: 10px; 
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        input#userQuery { 
+            flex-grow: 1; 
+            padding: 15px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border-color); 
+            background: var(--input-bg); 
+            color: var(--text-color);
+            font-size: 15px;
+        }
+        input#userQuery:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(0,122,204,0.2);
+        }
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 15px;
+            align-self: flex-start;
+        }
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        .model-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--success-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .backend-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .backend-online { background: var(--success-color); color: white; }
+        .backend-offline { background: var(--error-color); color: white; }
     </style>
 </head>
 <body>
     <div id="navContainer"></div>
-    <main class="fade-in">
+    
+    <main class="fade-in" style="position: relative; padding-top: 20px;">
+        <div class="model-badge">🚀 AI Assistant</div>
+        <div id="backendStatus" class="backend-status backend-offline">🔴 Offline</div>
+        
         <div id="aiAssistant" style="position: fixed; bottom: 20px; left: 20px; display: flex; align-items: center; gap: 10px; z-index: 999;">
             <img src="robot.png" style="width: 70px; height: 70px;">
-            <div style="background: #1e1e1e; padding: 10px 15px; border-radius: 10px; border: 1px solid #333; font-size: 14px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">مرحباً! أنا هنا لمساعدتك في البرمجة 🤖</div>
+            <div style="background: var(--card-bg); padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; color: var(--text-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5);">مرحباً! أنا هنا لمساعدتك في البرمجة 🤖</div>
         </div>
-        <div id="userInfo" style="color: #ccc; text-align: right; margin-bottom: 15px; font-size: 14px;"></div>
+        
+        <div id="userInfo" style="color: var(--text-color); text-align: right; margin-bottom: 15px; font-size: 14px;"></div>
+        
         <div class="chat-container">
             <div id="chatBox">
-                <div class="msg bot-msg">مرحباً بك يا زميلي.. أنا مساعدك الذكي المبرمج بالبايثون. اطلب مني أي كود وسأقوم بتوليده وشرحه لك.</div>
+                <div class="msg bot-msg">
+                    <strong>👋 مرحباً بك يا زميلي!</strong><br><br>
+                    أنا <strong>مساعدك الذكي</strong> للبرمجة.<br>
+                    يمكنني مساعدتك في:<br>
+                    • كتابة وشرح الأكواد البرمجية 📝<br>
+                    • حل المشاكل البرمجية 🔧<br>
+                    • تعلم لغات جديدة 📚<br>
+                    • مراجعة وتحسين الكود ✨<br><br>
+                    <small id="connectionNote" style="color: var(--error-color);">⚠️ في وضع الـ Demo - Backend غير متصل</small>
+                </div>
             </div>
             <div class="input-area">
-                <input type="text" id="userQuery" placeholder="اكتب سؤالك البرمجي هنا...">
-                <button id="sendButton" onclick="askAI()">إرسال</button>
+                <input type="text" id="userQuery" placeholder="اكتب سؤالك البرمجي هنا..." onkeypress="if(event.key==='Enter') askAI()">
+                <button id="sendButton" onclick="askAI()" style="padding: 15px 25px; white-space: nowrap;">إرسال ➤</button>
             </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 15px; color: var(--text-color); font-size: 12px; opacity: 0.7;">
+            💡 اضغط Enter للإرسال • المساعد يدعم الأكواد والشرح بالعربية
         </div>
     </main>
 
-    <script class="fade-In">
-        document.addEventListener('DOMContentLoaded', () => {
-            const auth = requireAuth();
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="common.js"></script>
+    
+    <script>
+        // متغيرات عامة
+        let backendAvailable = false;
+        let useBackend = true; // افتراضياً نستخدم Backend
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = typeof getAuth === 'function' ? getAuth() : null;
             if (auth) {
-                updateNavAuth();
+                if (typeof updateNavAuth === 'function') updateNavAuth();
                 const loginLink = document.getElementById('loginNav');
                 if (loginLink) loginLink.style.display = 'none';
 
                 const userInfo = document.getElementById('userInfo');
                 if (userInfo) {
-                    userInfo.innerText = `مرحباً ${auth.name} | الصلاحية: ${auth.role}`;
+                    userInfo.innerHTML = `مرحباً <strong>${auth.name}</strong> | الصلاحية: <span style="color:var(--success-color)">${auth.role}</span>`;
                 }
             }
+            
+            // التحقق من حالة Backend
+            await checkBackendConnection();
         });
+
+        async function checkBackendConnection() {
+            const statusEl = document.getElementById('backendStatus');
+            const noteEl = document.getElementById('connectionNote');
+            
+            try {
+                const response = await fetch(`${BACKEND_BASE_URL}/status`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    backendAvailable = true;
+                    statusEl.textContent = '🟢 Online';
+                    statusEl.className = 'backend-status backend-online';
+                    if (noteEl) {
+                        noteEl.textContent = '✅ Backend متصل - جاهز للمساعدة!';
+                        noteEl.style.color = 'var(--success-color)';
+                    }
+                    console.log('Backend connected:', data);
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                backendAvailable = false;
+                statusEl.textContent = '🔴 Offline';
+                statusEl.className = 'backend-status backend-offline';
+                if (noteEl) {
+                    noteEl.innerHTML = '⚠️ Backend غير متصل - استخدم <a href="https://console.groq.com" target="_blank" style="color:var(--accent-color)">Groq</a> مباشرة أو تأكد من تشغيل Render';
+                }
+                console.warn('Backend not available:', error);
+            }
+        }
 
         async function askAI() {
             const queryInput = document.getElementById('userQuery');
             const query = queryInput.value.trim();
             const chatBox = document.getElementById('chatBox');
             const sendButton = document.getElementById('sendButton');
+            
             if (!query) return;
 
-            const backendUrl = getBackendBaseUrl();
-            if (!backendUrl) {
-                showCustomAlert('الخادم غير محدد. لتشغيل الذكاء الاصطناعي على GitHub Pages، اضبط BACKEND_BASE_URL في config.js');
-                return;
-            }
+            // إضافة رسالة المستخدم
             chatBox.innerHTML += `<div class="msg user-msg">${escapeHtml(query)}</div>`;
             queryInput.value = '';
             sendButton.disabled = true;
 
-            const loading = document.createElement('div');
-            loading.className = 'msg bot-msg';
-            loading.innerText = 'جاري الاتصال بالذكاء الاصطناعي...';
-            chatBox.appendChild(loading);
+            // مؤشر الكتابة
+            const loadingId = 'typing-' + Date.now();
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = loadingId;
+            loadingDiv.className = 'typing-indicator';
+            loadingDiv.innerHTML = '<span></span><span></span><span></span>';
+            chatBox.appendChild(loadingDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                const response = await fetchWithAuth(`${backendUrl}/ask-ai`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ query: query })
-                });
-                const data = await response.json();
+                let aiText = '';
+                
+                if (backendAvailable && useBackend) {
+                    // استخدام Backend (الطريقة المفضلة)
+                    aiText = await askBackend(query);
+                } else {
+                    // Backend غير متصل - رسالة توضيحية
+                    aiText = `عذراً، خادم الذكاء الاصطناعي (Backend) غير متصل حالياً.\n\n**الحلول المتاحة:**\n\n1. **تأكد من تشغيل Render:**\n   - ادخل إلى [Render Dashboard](https://dashboard.render.com)\n   - تأكد أن الخدمة شغالة\n\n2. **استخدم Backend محلي:**\n   - شغل \`python app.py\` على جهازك\n   - حدث \`BACKEND_BASE_URL\` في \`config.js\`\n\n3. **احصل على مفتاح Groq:**\n   - سجل في [console.groq.com](https://console.groq.com)\n   - أضف المفتاح في Render كـ \`GROQ_API_KEY\`\n\n**ملاحظة:** GitHub Pages لا يدعم Python Backend، لذلك تحتاج Render دائماً للـ AI.`;
+                }
+
+                // إزالة مؤشر الكتابة
+                document.getElementById(loadingId)?.remove();
+
+                // إضافة رد البوت
                 const botMsg = document.createElement('div');
                 botMsg.className = 'msg bot-msg';
-                botMsg.innerText = data.response || 'عذراً، لم يصل رد من الخادم.';
+                botMsg.innerHTML = formatAIResponse(aiText);
                 chatBox.appendChild(botMsg);
+                
             } catch (error) {
-                const botMsg = document.createElement('div');
-                botMsg.className = 'msg bot-msg';
-                botMsg.innerText = 'عذراً، تأكد من تشغيل خادم البايثون (app.py) أولاً.';
-                chatBox.appendChild(botMsg);
-                showCustomAlert(`حدث خطأ في الاتصال: ${error.message}`);
+                document.getElementById(loadingId)?.remove();
+                showErrorInChat(error.message);
             } finally {
-                loading.remove();
                 sendButton.disabled = false;
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
 
+        async function askBackend(query) {
+            const response = await fetchWithAuth(`${BACKEND_BASE_URL}/ask-ai`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ query: query })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Backend error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.response || 'عذراً، لم يصل رد من الخادم.';
+        }
+
+        function showErrorInChat(error) {
+            const chatBox = document.getElementById('chatBox');
+            const botMsg = document.createElement('div');
+            botMsg.className = 'msg bot-msg';
+            botMsg.style.borderRightColor = 'var(--error-color)';
+            botMsg.innerHTML = `
+                <strong style="color:var(--error-color)">⚠️ خطأ في الاتصال</strong><br><br>
+                ${escapeHtml(error)}<br><br>
+                <small>💡 جرب:</small><br>
+                • تحديث الصفحة (F5)<br>
+                • التحقق من اتصال الإنترنت<br>
+                • التأكد من تشغيل Backend على Render
+            `;
+            chatBox.appendChild(botMsg);
+        }
+
+        function formatAIResponse(text) {
+            // تحويل علامات الكود
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                return `<pre><code>${escapeHtml(code)}</code></pre>`;
+            });
+            
+            // تحويل العناوين
+            text = text.replace(/### (.*)/g, '<strong style="color:var(--accent-color);display:block;margin-top:15px;">$1</strong>');
+            text = text.replace(/## (.*)/g, '<strong style="color:var(--accent-color);font-size:16px;display:block;margin-top:15px;">$1</strong>');
+            
+            // تحويل النص العريض
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // تحويل القوائم
+            text = text.replace(/• (.*)/g, '• $1<br>');
+            text = text.replace(/- (.*)/g, '• $1<br>');
+            
+            // تحويل الروابط
+            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--accent-color);text-decoration:underline;">$1</a>');
+            
+            return text;
+        }
+
         function escapeHtml(text) {
+            if (!text) return '';
             return text
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
@@ -104,7 +341,6 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
         }
-
 
         function showCustomAlert(message) {
             const existingAlerts = document.querySelectorAll('.alert-custom');
@@ -119,29 +355,6 @@
                 alertDiv.remove();
             }, 3000);
         }
-
-          function showFavorites() {
-            const favCodes = JSON.parse(localStorage.getItem('favorites')) || [];
-            if (favCodes.length === 0) {
-                showCustomAlert('لا توجد أكواد محفوظة في المفضلات');
-                return;
-            }
-            
-            let message = 'أكوادك المفضلة:\n\n';
-            favCodes.forEach((code, index) => {
-                message += `${index + 1}. ${code}\n`;
-            });
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert-custom';
-            alertDiv.style.whiteSpace = 'pre-wrap';
-            alertDiv.innerText = message;
-            document.body.appendChild(alertDiv);
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 3000);
-        }
     </script>
 </body>
-  <script src="config.js"></script>
-    <script src="common.js"></script>
 </html>

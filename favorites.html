@@ -12,6 +12,62 @@
 <body>
     <div id="navContainer"></div>
 
+    <!-- القائمة الجانبية -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>🛠️ أدوات المطور</h3>
+            <button onclick="toggleSidebar()" class="close-sidebar">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <h4>📊 إحصائيات</h4>
+                <div class="stat-item">
+                    <span>عدد الأكواد:</span>
+                    <span id="totalCodes">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>المفضلات:</span>
+                    <span id="totalFavs">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>آخر دخول:</span>
+                    <span id="lastLogin">-</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4>🎨 تخصيص</h4>
+                <button onclick="toggleTheme()" class="sidebar-btn">🌓 تبديل الوضع</button>
+                <button onclick="changeFontSize()" class="sidebar-btn">🔤 حجم الخط</button>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4>⚡ اختصارات</h4>
+                <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd> بحث</div>
+                <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>T</kbd> وضع</div>
+                <div class="shortcut-item"><kbd>ESC</kbd> إغلاق</div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4>🔗 روابط سريعة</h4>
+                <a href="index.html" class="sidebar-link">🏠 الرئيسية</a>
+                <a href="ai.html" class="sidebar-link">🤖 المساعد الذكي</a>
+                <a href="comments.html" class="sidebar-link">💬 التعليقات</a>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4>📥 تصدير</h4>
+                <button onclick="exportFavorites()" class="sidebar-btn">💾 تصدير المفضلات</button>
+                <button onclick="exportAllCodes()" class="sidebar-btn">📦 تصدير كل الأكواد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر فتح القائمة الجانبية -->
+    <button id="sidebarToggle" onclick="toggleSidebar()" class="sidebar-toggle" title="القائمة الجانبية">
+        ⚙️
+    </button>
+
     <main class="fade-in" style="margin-top: 50px; width: 90%; max-width: 800px;">
         <div class="code-card">
             <h2>المفضلات ❤️</h2>
@@ -21,53 +77,109 @@
     </main>
 
     <script>
-        // جلب الأكواد من Firebase أو المحلية
-        async function getAllCodes() {
-            // أولاً نجرب Firebase
-            if (typeof firebase !== 'undefined') {
-                try {
-                    const snapshot = await firebase.database().ref('codes').once('value');
-                    const codes = [];
-                    snapshot.forEach(child => {
-                        codes.push({...child.val(), key: child.key});
-                    });
-                    if (codes.length > 0) return codes;
-                } catch(e) {
-                    console.log('Firebase codes not available, using local');
-                }
-            }
-            // fallback للأكواد المحلية
-            return window.myCode || [];
+        // ========== القائمة الجانبية ==========
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
         }
 
-        async function renderFavorites() {
+        function changeFontSize() {
+            const current = parseInt(getComputedStyle(document.body).fontSize) || 16;
+            const sizes = [14, 16, 18, 20];
+            const nextIndex = (sizes.indexOf(current) + 1) % sizes.length;
+            document.body.style.fontSize = sizes[nextIndex] + 'px';
+            localStorage.setItem('fontSize', sizes[nextIndex]);
+            showCustomAlert(`حجم الخط: ${sizes[nextIndex]}px`);
+        }
+
+        function exportFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const codes = window.myCode || [];
+            const exportData = favorites.map(title => {
+                const item = codes.find(c => c.title === title);
+                return item || { title, code: 'غير متوفر' };
+            });
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'favorites.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showCustomAlert('تم تصدير المفضلات! ✅');
+        }
+
+        function exportAllCodes() {
+            const codes = window.myCode || [];
+            const blob = new Blob([JSON.stringify(codes, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'all_codes.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showCustomAlert('تم تصدير كل الأكواد! ✅');
+        }
+
+        // ========== جلب الأكواد ==========
+        function getAllCodes() {
+            // نستخدم الأكواد من script.js أو المحلية
+            if (window.myCode && window.myCode.length > 0) {
+                return window.myCode;
+            }
+            // fallback للأكواد المحلية المخزنة
+            const stored = localStorage.getItem('allCodes');
+            if (stored) return JSON.parse(stored);
+            return [];
+        }
+
+        // ========== عرض المفضلات ==========
+        function renderFavorites() {
             const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const favList = document.getElementById('favoritesList');
             favList.innerHTML = '';
 
+            // تحديث الإحصائيات
+            document.getElementById('totalFavs').textContent = favorites.length;
+            const allCodes = getAllCodes();
+            document.getElementById('totalCodes').textContent = allCodes.length;
+            
+            const auth = getAuth();
+            document.getElementById('lastLogin').textContent = auth ? (auth.name || auth.email) : '-';
+
             if (favorites.length === 0) {
-                favList.innerHTML = '<p style="text-align:center; color:var(--text-color); padding:20px;">لا توجد أكواد محفوظة في المفضلات.</p>';
+                favList.innerHTML = `
+                    <div style="text-align:center; padding:40px; color:var(--text-color);">
+                        <div style="font-size:48px; margin-bottom:15px;">💔</div>
+                        <p>لا توجد أكواد محفوظة في المفضلات.</p>
+                        <p style="font-size:14px; color:var(--border-color);">اذهب للصفحة الرئيسية واضغط ❤️ على أي كود</p>
+                    </div>
+                `;
                 return;
             }
 
-            const codes = await getAllCodes();
-            
             favorites.forEach(title => {
-                const item = codes.find(c => c.title === title || c.title === decodeURIComponent(title));
+                const item = allCodes.find(c => c.title === title);
                 const card = document.createElement('div');
                 card.className = 'comment-card';
-                card.style.cssText = 'padding:15px; margin-bottom:15px; border-radius:10px; border-right:4px solid var(--accent-color);';
+                card.style.cssText = `
+                    padding:15px; margin-bottom:15px; border-radius:10px; 
+                    border-right:4px solid var(--accent-color);
+                    transition:0.3s;
+                `;
                 
-                const safeTitle = encodeURIComponent(item ? item.title : title);
+                const safeTitle = encodeURIComponent(title);
                 
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                         <div style="text-align:right; flex:1; min-width:200px;">
-                            <strong style="font-size:18px; color:var(--accent-color);">${item ? item.title : title}</strong>
-                            ${item ? `<br><small style="color:var(--success-color);">📝 ${item.lang}</small>` : ''}
+                            <strong style="font-size:18px; color:var(--accent-color);">${title}</strong>
+                            ${item ? `<br><small style="color:var(--success-color);">📝 ${item.lang}</small>` : '<br><small style="color:var(--error-color);">⚠️ الكود غير متوفر محلياً</small>'}
                         </div>
                         <div style="display:flex; gap:8px;">
                             <button onclick="viewFavorite('${safeTitle}')" style="padding:8px 15px; font-size:14px;">👁️ عرض</button>
+                            <button onclick="copyFavCode('${safeTitle}')" style="padding:8px 15px; font-size:14px; background:var(--success-color);">📋 نسخ</button>
                             <button onclick="removeFavorite('${safeTitle}')" style="padding:8px 15px; font-size:14px; background:var(--error-color);">🗑️ حذف</button>
                         </div>
                     </div>
@@ -76,106 +188,218 @@
             });
         }
 
-        async function removeFavorite(encodedTitle) {
+        // ========== عرض الكود (الإصلاح الرئيسي) ==========
+        function viewFavorite(encodedTitle) {
             const title = decodeURIComponent(encodedTitle);
-            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-            favorites = favorites.filter(t => t !== title && t !== encodedTitle);
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            await renderFavorites();
-            showCustomAlert('تم إزالة من المفضلات 💔');
-            if (typeof updateNavAuth === 'function') updateNavAuth();
-        }
-
-        async function viewFavorite(encodedTitle) {
-            const title = decodeURIComponent(encodedTitle);
-            const codes = await getAllCodes();
-            const item = codes.find(c => c.title === title);
+            const allCodes = getAllCodes();
+            const item = allCodes.find(c => c.title === title);
             
             if (!item) {
+                // محاولة البحث في Firebase إذا كان متاح
+                if (typeof firebase !== 'undefined' && firebase.database) {
+                    firebase.database().ref('codes').orderByChild('title').equalTo(title).once('value')
+                        .then(snapshot => {
+                            let found = null;
+                            snapshot.forEach(child => {
+                                found = { ...child.val(), key: child.key };
+                            });
+                            if (found) {
+                                showCodePopup(found);
+                            } else {
+                                showCustomAlert('لم أتمكن من العثور على الكود.');
+                            }
+                        });
+                    return;
+                }
                 showCustomAlert('لم أتمكن من العثور على الكود.');
                 return;
             }
 
+            showCodePopup(item);
+        }
+
+        function showCodePopup(item) {
+            // إزالة أي popup سابق
+            document.querySelectorAll('.code-popup-overlay').forEach(p => p.remove());
+
             const popup = document.createElement('div');
+            popup.className = 'code-popup-overlay';
             popup.style.cssText = `
                 position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-                background:rgba(0,0,0,0.8); z-index:2000; padding:20px;
+                background:rgba(0,0,0,0.85); z-index:3000; padding:20px;
+                animation: fadeIn 0.3s ease;
             `;
             
             const box = document.createElement('div');
             box.style.cssText = `
-                background:var(--card-bg); color:var(--text-color); padding:25px;
-                border-radius:15px; max-width:90%; max-height:85vh; overflow:auto;
-                text-align:right; border:2px solid var(--accent-color); width:700px;
-                box-shadow:0 20px 60px rgba(0,0,0,0.5);
+                background:var(--card-bg); color:var(--text-color); padding:0;
+                border-radius:15px; max-width:95%; max-height:90vh; overflow:hidden;
+                text-align:right; border:2px solid var(--accent-color); width:800px;
+                box-shadow:0 25px 80px rgba(0,0,0,0.6); display:flex; flex-direction:column;
             `;
             
-            // Syntax highlighting بسيط
+            // تلوين الكود
             const highlightedCode = highlightCode(item.code, item.lang);
             
             box.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid var(--border-color); padding-bottom:10px;">
-                    <h3 style="margin:0; color:var(--accent-color);">${item.title}</h3>
-                    <span style="background:var(--accent-color); color:white; padding:4px 12px; border-radius:20px; font-size:12px;">${item.lang}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:rgba(0,0,0,0.2); border-bottom:1px solid var(--border-color);">
+                    <div>
+                        <h3 style="margin:0; color:var(--accent-color); font-size:18px;">${item.title}</h3>
+                        <span style="background:var(--accent-color); color:white; padding:2px 10px; border-radius:12px; font-size:11px; margin-top:5px; display:inline-block;">${item.lang}</span>
+                    </div>
+                    <button onclick="closeCodePopup()" style="background:none; border:none; color:var(--text-color); font-size:24px; cursor:pointer; padding:5px;">✕</button>
                 </div>
-                <div style="background:var(--bg-color); padding:15px; border-radius:8px; direction:ltr; text-align:left; overflow-x:auto; border-left:4px solid var(--accent-color);">
-                    <pre style="margin:0; font-family:'Consolas', monospace; font-size:14px; line-height:1.6;"><code>${highlightedCode}</code></pre>
+                <div style="overflow:auto; padding:20px; flex:1;">
+                    <div style="background:var(--bg-color); border-radius:8px; overflow:hidden; border-left:4px solid var(--accent-color);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 15px; background:rgba(0,0,0,0.3); border-bottom:1px solid var(--border-color);">
+                            <span style="font-size:12px; color:var(--accent-color); font-family:monospace;">${item.lang}</span>
+                            <div style="display:flex; gap:5px;">
+                                <span style="width:10px; height:10px; border-radius:50%; background:#ff5f56;"></span>
+                                <span style="width:10px; height:10px; border-radius:50%; background:#ffbd2e;"></span>
+                                <span style="width:10px; height:10px; border-radius:50%; background:#27c93f;"></span>
+                            </div>
+                        </div>
+                        <pre style="margin:0; padding:15px; direction:ltr; text-align:left; overflow-x:auto; font-family:'Consolas', 'Monaco', 'Courier New', monospace; font-size:14px; line-height:1.7;"><code>${highlightedCode}</code></pre>
+                    </div>
                 </div>
-                <div style="display:flex; gap:10px; justify-content:flex-start; margin-top:15px; flex-wrap:wrap;">
-                    <button onclick="copyFavoriteCode('${encodedTitle}')" style="padding:8px 20px; font-size:14px;">📋 نسخ الكود</button>
-                    <button onclick="this.closest('.popup-overlay').remove()" style="padding:8px 20px; font-size:14px; background:var(--border-color);">❌ إغلاق</button>
+                <div style="display:flex; gap:10px; padding:15px 20px; background:rgba(0,0,0,0.1); border-top:1px solid var(--border-color); flex-wrap:wrap;">
+                    <button onclick="copyPopupCode()" style="flex:1; min-width:120px;">📋 نسخ الكود</button>
+                    <button onclick="sharePopupCode()" style="flex:1; min-width:120px; background:var(--border-color);">🔗 مشاركة</button>
+                    <button onclick="closeCodePopup()" style="flex:1; min-width:120px; background:var(--error-color);">❌ إغلاق</button>
                 </div>
             `;
             
-            popup.className = 'popup-overlay';
             popup.appendChild(box);
             document.body.appendChild(popup);
             
+            // تخزين الكود الحالي للنسخ
+            popup.dataset.currentCode = item.code;
+            popup.dataset.currentTitle = item.title;
+            
+            // إغلاق بالنقر خارج الصندوق
             popup.onclick = (e) => {
-                if (e.target === popup) popup.remove();
+                if (e.target === popup) closeCodePopup();
             };
+            
+            // إغلاق بـ ESC
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeCodePopup();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+            document.addEventListener('keydown', escHandler);
         }
 
+        function closeCodePopup() {
+            const popups = document.querySelectorAll('.code-popup-overlay');
+            popups.forEach(p => {
+                p.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => p.remove(), 300);
+            });
+        }
+
+        function copyPopupCode() {
+            const popup = document.querySelector('.code-popup-overlay');
+            if (popup && popup.dataset.currentCode) {
+                navigator.clipboard.writeText(popup.dataset.currentCode);
+                showCustomAlert('تم نسخ الكود بنجاح! ✅');
+            }
+        }
+
+        function sharePopupCode() {
+            const popup = document.querySelector('.code-popup-overlay');
+            if (!popup) return;
+            
+            const title = popup.dataset.currentTitle || 'كود';
+            const code = popup.dataset.currentCode || '';
+            
+            const text = `كود: ${title}\n\n${code.substring(0, 200)}${code.length > 200 ? '...' : ''}`;
+            
+            if (navigator.share) {
+                navigator.share({ title, text });
+            } else {
+                navigator.clipboard.writeText(text);
+                showCustomAlert('تم نسخ تفاصيل الكود للمشاركة! 📋');
+            }
+        }
+
+        function copyFavCode(encodedTitle) {
+            const title = decodeURIComponent(encodedTitle);
+            const allCodes = getAllCodes();
+            const item = allCodes.find(c => c.title === title);
+            if (item && item.code) {
+                navigator.clipboard.writeText(item.code);
+                showCustomAlert('تم نسخ الكود بنجاح! ✅');
+            } else {
+                showCustomAlert('الكود غير متوفر للنسخ');
+            }
+        }
+
+        // ========== تلوين الكود ==========
         function highlightCode(code, lang) {
-            // تلوين بسيط للكود
+            if (!code) return '';
+            
             let html = escapeHtml(code);
             
+            const colors = {
+                keyword: '#ff79c6',
+                string: '#f1fa8c',
+                comment: '#6272a4',
+                number: '#bd93f9',
+                function: '#8be9fd',
+                operator: '#ff79c6'
+            };
+            
             if (lang === 'Python') {
-                html = html.replace(/\b(def|class|return|if|else|elif|for|while|import|from|try|except|with|as|print)\b/g, '<span style="color:#ff79c6;">$1</span>');
-                html = html.replace(/\b(True|False|None)\b/g, '<span style="color:#bd93f9;">$1</span>');
-                html = html.replace(/(#.*$)/gm, '<span style="color:#6272a4;">$1</span>');
-                html = html.replace(/(".*?"|'.*?')/g, '<span style="color:#f1fa8c;">$1</span>');
+                html = html.replace(/\b(def|class|return|if|else|elif|for|while|import|from|try|except|with|as|print|pass|break|continue|lambda|yield|raise|assert|del|global|nonlocal|and|or|not|in|is)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+                html = html.replace(/\b(True|False|None)\b/g, `<span style="color:${colors.number}">$1</span>`);
+                html = html.replace(/(#.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+                html = html.replace(/(".*?"|'.*?')/g, `<span style="color:${colors.string}">$1</span>`);
+                html = html.replace(/\b(\d+\.?\d*)\b/g, `<span style="color:${colors.number}">$1</span>`);
             } else if (lang === 'JavaScript') {
-                html = html.replace(/\b(function|return|var|let|const|if|else|for|while|try|catch|new|this|typeof)\b/g, '<span style="color:#ff79c6;">$1</span>');
-                html = html.replace(/\b(true|false|null|undefined)\b/g, '<span style="color:#bd93f9;">$1</span>');
-                html = html.replace(/(\/\/.*$)/gm, '<span style="color:#6272a4;">$1</span>');
-                html = html.replace(/(".*?"|'.*?'|`.*?`)/g, '<span style="color:#f1fa8c;">$1</span>');
-            } else if (lang === 'C++' || lang === 'Java') {
-                html = html.replace(/\b(int|float|double|char|void|bool|return|if|else|for|while|class|public|private|include|using|namespace|std)\b/g, '<span style="color:#ff79c6;">$1</span>');
-                html = html.replace(/\b(true|false|null)\b/g, '<span style="color:#bd93f9;">$1</span>');
-                html = html.replace(/(\/\/.*$)/gm, '<span style="color:#6272a4;">$1</span>');
-                html = html.replace(/(".*?")/g, '<span style="color:#f1fa8c;">$1</span>');
+                html = html.replace(/\b(function|return|var|let|const|if|else|for|while|do|try|catch|finally|throw|new|this|typeof|instanceof|in|of|void|delete|debugger|async|await|class|extends|super|import|export|default|from)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+                html = html.replace(/\b(true|false|null|undefined|NaN|Infinity)\b/g, `<span style="color:${colors.number}">$1</span>`);
+                html = html.replace(/(\/\/.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+                html = html.replace(/(\/\*[\s\S]*?\*\/)/g, `<span style="color:${colors.comment}">$1</span>`);
+                html = html.replace(/(".*?"|'.*?'|`.*?`)/g, `<span style="color:${colors.string}">$1</span>`);
+                html = html.replace(/\b(\d+\.?\d*)\b/g, `<span style="color:${colors.number}">$1</span>`);
+            } else if (lang === 'C++' || lang === 'C') {
+                html = html.replace(/\b(int|float|double|char|void|bool|long|short|unsigned|signed|auto|const|static|extern|register|volatile|mutable|inline|virtual|explicit|override|final|return|if|else|for|while|do|switch|case|default|break|continue|goto|try|catch|throw|new|delete|class|struct|union|enum|typedef|template|typename|namespace|using|public|protected|private|friend|operator|sizeof|typeof|decltype)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+                html = html.replace(/\b(true|false|null|nullptr)\b/g, `<span style="color:${colors.number}">$1</span>`);
+                html = html.replace(/(\/\/.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+                html = html.replace(/(".*?")/g, `<span style="color:${colors.string}">$1</span>`);
+                html = html.replace(/\b(\d+\.?\d*)\b/g, `<span style="color:${colors.number}">$1</span>`);
+            } else if (lang === 'Java') {
+                html = html.replace(/\b(abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|void|volatile|while)\b/g, `<span style="color:${colors.keyword}">$1</span>`);
+                html = html.replace(/\b(true|false|null)\b/g, `<span style="color:${colors.number}">$1</span>`);
+                html = html.replace(/(\/\/.*$)/gm, `<span style="color:${colors.comment}">$1</span>`);
+                html = html.replace(/(".*?")/g, `<span style="color:${colors.string}">$1</span>`);
+                html = html.replace(/\b(\d+\.?\d*)\b/g, `<span style="color:${colors.number}">$1</span>`);
             }
             
             return html;
         }
 
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        async function copyFavoriteCode(encodedTitle) {
+        // ========== حذف من المفضلات ==========
+        function removeFavorite(encodedTitle) {
             const title = decodeURIComponent(encodedTitle);
-            const codes = await getAllCodes();
-            const item = codes.find(c => c.title === title);
-            if (item) {
-                navigator.clipboard.writeText(item.code);
-                showCustomAlert('تم نسخ الكود بنجاح! ✅');
-            }
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            favorites = favorites.filter(t => t !== title);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            renderFavorites();
+            showCustomAlert('تم إزالة من المفضلات 💔');
+            if (typeof updateNavAuth === 'function') updateNavAuth();
         }
 
+        // ========== التنبيهات ==========
         function showCustomAlert(message) {
             const existing = document.querySelectorAll('.alert-custom');
             existing.forEach(a => a.remove());
@@ -188,16 +412,29 @@
                 background:var(--card-bg); color:var(--text-color);
                 border-right:4px solid var(--accent-color); border-radius:10px;
                 box-shadow:0 5px 15px rgba(0,0,0,0.3); z-index:1001;
-                animation:slideInRight 0.5s ease-out; max-width:300px;
+                animation:slideInRight 0.5s ease-out; max-width:350px;
+                word-wrap:break-word; font-size:14px;
             `;
             document.body.appendChild(alertDiv);
-            setTimeout(() => alertDiv.remove(), 3000);
+            setTimeout(() => {
+                alertDiv.style.animation = 'slideOutRight 0.5s ease-in';
+                setTimeout(() => alertDiv.remove(), 500);
+            }, 3000);
         }
 
+        // ========== التحميل ==========
         document.addEventListener('DOMContentLoaded', () => {
-            requireAuth();
-            updateNavAuth();
-            renderFavorites();
+            if (typeof requireAuth === 'function') requireAuth();
+            if (typeof updateNavAuth === 'function') updateNavAuth();
+            
+            // تحميل حجم الخط المحفوظ
+            const savedSize = localStorage.getItem('fontSize');
+            if (savedSize) document.body.style.fontSize = savedSize + 'px';
+            
+            // انتظار تحميل الأكواد من script.js
+            setTimeout(() => {
+                renderFavorites();
+            }, 500);
         });
     </script>
 </body>
