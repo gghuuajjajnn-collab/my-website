@@ -1,4 +1,11 @@
+// ==========================================
+// Backend & OAuth Configuration
+// ==========================================
+
+// TODO: Replace with your Render backend URL after deployment
 const BACKEND_BASE_URL = 'https://python-2-f11m.onrender.com';
+
+// TODO: Replace with your Google OAuth 2.0 Client ID
 const GOOGLE_CLIENT_ID = '255147968868-vee93tfeiau2diibtp96ko39higle47d.apps.googleusercontent.com';
 
 function getBackendBaseUrl() {

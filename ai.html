@@ -62,13 +62,14 @@
             40% { transform: scale(1); }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div id="navContainer"></div>
-    
+
     <main class="fade-in" style="padding-top: 20px;">
         <div id="userInfo" style="color: var(--text-color); text-align: right; margin-bottom: 15px; font-size: 14px;"></div>
-        
+
         <div class="chat-container">
             <div id="chatBox">
                 <div class="msg bot-msg">
@@ -91,12 +92,14 @@
     <script src="config.js"></script>
     <script src="auth.js"></script>
     <script src="common.js"></script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            if (!requireAuth()) return;
+            updateNavAuth();
+
             const auth = getAuth();
             if (auth) {
-                updateNavAuth();
                 const loginLink = document.getElementById('loginNav');
                 if (loginLink) loginLink.style.display = 'none';
                 document.getElementById('userInfo').innerHTML = 
@@ -109,7 +112,7 @@
             const query = queryInput.value.trim();
             const chatBox = document.getElementById('chatBox');
             const sendButton = document.getElementById('sendButton');
-            
+
             if (!query) return;
 
             chatBox.innerHTML += `<div class="msg user-msg">${escapeHtml(query)}</div>`;
@@ -127,22 +130,21 @@
             try {
                 const response = await fetchWithAuth(`${BACKEND_BASE_URL}/ask-ai`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ query: query })
                 });
-                
+
                 const data = await response.json();
-                
+
                 document.getElementById(loadingId)?.remove();
-                
+
                 const botMsg = document.createElement('div');
                 botMsg.className = 'msg bot-msg';
                 botMsg.innerHTML = formatResponse(data.response || 'عذراً، لم يصل رد.');
                 chatBox.appendChild(botMsg);
-                
+
             } catch (error) {
                 document.getElementById(loadingId)?.remove();
-                
+
                 const botMsg = document.createElement('div');
                 botMsg.className = 'msg bot-msg';
                 botMsg.style.borderRightColor = 'var(--error-color)';

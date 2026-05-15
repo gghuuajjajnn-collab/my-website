@@ -1,23 +1,23 @@
 const siteRoutes = [
-    { href: '/', label: 'الرئيسية' },
-    { href: '/ai', label: 'الذكاء الاصطناعي' },
-    { href: '/comments', label: 'تعليقاتكم' },
-    { href: '/favorites', label: 'المفضلات', id: 'favoritesNav' },
-    { href: '/login', label: 'تسجيل الدخول', id: 'loginNav' },
-    { href: '/about', label: 'من أنا' }
+    { href: 'index.html', label: 'الرئيسية' },
+    { href: 'ai.html', label: 'الذكاء الاصطناعي' },
+    { href: 'comments.html', label: 'تعليقاتكم' },
+    { href: 'favorites.html', label: 'المفضلات', id: 'favoritesNav' },
+    { href: 'login.html', label: 'تسجيل الدخول', id: 'loginNav' },
+    { href: 'about.html', label: 'من أنا' }
 ];
 
 function getCurrentPath() {
-    const path = window.location.pathname.replace(/\/+$/, '');
-    return path === '' ? '/' : path;
+    const path = window.location.pathname;
+    const filename = path.split('/').pop() || 'index.html';
+    if (!filename || filename === '') return 'index.html';
+    return filename;
 }
 
 function buildNavLink(route) {
-    const currentPath = getCurrentPath();
-    const isActive = currentPath === route.href || (route.href === '/login' && currentPath === '/login.html');
-    return `
-        <a href="${route.href}" ${route.id ? `id="${route.id}"` : ''} class="${isActive ? 'active' : ''}">${route.label}</a>
-    `;
+    const current = getCurrentPath();
+    const isActive = current === route.href || current === route.href.replace('.html', '');
+    return `<a href="${route.href}" ${route.id ? `id="${route.id}"` : ''} class="${isActive ? 'active' : ''}">${route.label}</a>`;
 }
 
 function createNavbar() {
@@ -39,18 +39,13 @@ function createNavbar() {
     if (themeToggle) {
         themeToggle.addEventListener('click', toggleTheme);
     }
-    // initialize theme and navbar auth state
     initTheme();
     updateNavAuth();
 }
 
 function initTheme() {
-    const storedTheme = localStorage.getItem('siteTheme');
-    if (storedTheme) {
-        setTheme(storedTheme);
-    } else {
-        setTheme('dark');
-    }
+    const stored = localStorage.getItem('siteTheme');
+    setTheme(stored || 'dark');
 }
 
 function setTheme(mode) {
@@ -66,24 +61,11 @@ function toggleTheme() {
 }
 
 function updateThemeButton() {
-    const button = document.getElementById('themeToggle');
-    if (!button) return;
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
     const isLight = document.body.classList.contains('light-theme');
-    button.textContent = isLight ? '🌙' : '☀️';
-    button.title = isLight ? 'تشغيل الوضع الليلي' : 'تشغيل الوضع النهاري';
-}
-
-function updateNavAuth() {
-    const loginLink = document.getElementById('loginNav');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const auth = typeof getAuth === 'function' ? getAuth() : null;
-
-    if (loginLink) {
-        loginLink.style.display = auth && auth.email ? 'none' : 'inline-block';
-    }
-    if (logoutBtn) {
-        logoutBtn.style.display = auth && auth.email ? 'inline-block' : 'none';
-    }
+    btn.textContent = isLight ? '🌙' : '☀️';
+    btn.title = isLight ? 'تشغيل الوضع الليلي' : 'تشغيل الوضع النهاري';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -91,16 +73,14 @@ window.addEventListener('DOMContentLoaded', () => {
     initTheme();
 });
 
-window.addEventListener('storage', (event) => {
-    if (event.key === 'siteTheme') {
-        setTheme(event.newValue || 'dark');
+window.addEventListener('storage', (e) => {
+    if (e.key === 'siteTheme') {
+        setTheme(e.newValue || 'dark');
     }
 });
 
-// Global keyboard shortcut: Ctrl/Cmd+T toggles theme across all pages
 window.addEventListener('keydown', (e) => {
     try {
-        if (!e.key) return;
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
             const active = document.activeElement;
             if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
@@ -110,6 +90,6 @@ window.addEventListener('keydown', (e) => {
             if (typeof toggleTheme === 'function') toggleTheme();
         }
     } catch (err) {
-        // ignore errors from unexpected environments
+        // ignore
     }
 });

@@ -1,0 +1,7 @@
+/ /index.html 200
+/about /about.html 200
+/ai /ai.html 200
+/comments /comments.html 200
+/favorites /favorites.html 200
+/login /login.html 200
+/* /index.html 200
